@@ -227,7 +227,7 @@ const HomeScreen = ({ navigation, route }) => {
                 ]}
                 style={pickerSelectStyles.inputAndroid}
                 placeholder={{
-                  label: 'Select coin from list ',
+                  label: 'Select coin',
                   vAalue: null,
                 }}
               />
@@ -235,7 +235,7 @@ const HomeScreen = ({ navigation, route }) => {
             <View style={styles.pricesTextContainer}>
               <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold', marginTop: 10 }}>
                 Selected Coin: 
-                <Text style={{ color: 'red', fontSize: 20, fontWeight: 'bold' }}> {selectedValue}</Text>
+                <Text style={{ color: 'green', fontSize: 20, fontWeight: 'bold' }}> {selectedValue}</Text>
               </Text>
               <View style={{ flexDirection: 'row' }}>
                 {livePrice !== null && (
@@ -261,10 +261,8 @@ const HomeScreen = ({ navigation, route }) => {
           <View style={styles.pricesTextContainer}>
             {livePrice !== null && (
               <Text style={styles.displayCurrentPrice}>
-                <Text style={{ color: 'red', fontStyle: 'italic', fontWeight: 'bold' }}>
-                  {selectedValue}:
-                </Text>
-                {livePrice.toFixed(2)}
+                <Text style={{ color: 'green', fontStyle: 'italic', fontWeight: 'bold' }}>
+                  {selectedValue}: </Text>{livePrice.toFixed(2)}
                 <Text style={styles.usdStyle}>USDT</Text>
               </Text>
             )}
@@ -311,10 +309,8 @@ const HomeScreen = ({ navigation, route }) => {
         <View style={styles.pricesTextContainer}>
             {livePrice !== null && (
               <Text style={styles.displayCurrentPrice}>
-                <Text style={{ color: 'red', fontStyle: 'italic', fontWeight: 'bold' }}>
-                  {selectedValue}:
-                </Text>
-                {livePrice.toFixed(2)}
+                <Text style={{ color: 'green', fontStyle: 'italic', fontWeight: 'bold' }}>
+                  {selectedValue}: </Text>{livePrice.toFixed(2)}
                 <Text style={styles.usdStyle}>USDT</Text>
               </Text>
             )}
@@ -383,7 +379,7 @@ const HomeScreen = ({ navigation, route }) => {
 
   return (
     <LinearGradient
-      colors={['#100d1c', '#3d0615']}
+      colors={['black', '#3d0615']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }} // Changed to vertical gradient
       style={styles.gradientBackground}>
@@ -508,7 +504,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   selectedCurrency: {
-    color: 'red',
+    color: '#63B8CE',
     fontSize: 40,
     fontWeight: 'bold',
     marginTop: -4,
@@ -516,14 +512,15 @@ const styles = StyleSheet.create({
  
   displayCurrentPrice: {
     marginLeft: 10,
-    color: 'red',
+    color: '#63B8CE',
     fontSize: 25,
     fontWeight: 'bold',
   },
   usdStyle: {
-    color:'red',
-    fontSize: 25,
+    color:'#63B8CE',
+    fontSize: 18,
     fontWeight: '400',
+    fontStyle:'italic',
   },
   coinsDropDown: {
     height: 43,

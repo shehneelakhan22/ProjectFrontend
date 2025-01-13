@@ -568,7 +568,7 @@ const styles = StyleSheet.create({
   },
   selectedTimeTextStyle:{
     fontSize:18,
-    color:'#0f0f0f',
+    color:'white',
     fontWeight:'500'
   },
   selectedTimeStyle:{

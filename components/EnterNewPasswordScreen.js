@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const EnterNewPasswordScreen = ({ route, navigation }) => {
   const { currentPassword } = route.params;
@@ -18,13 +19,16 @@ const EnterNewPasswordScreen = ({ route, navigation }) => {
   };
 
   return (
+    <LinearGradient
+              colors={['#000000', '#2c032e', '#000000']} 
+              style={styles.backgroundGradient} // Apply gradient to full screen
+            >
     <View style={styles.container}>
-      <Text style={styles.heading}>Set New Password</Text>
-      
+      <Text style={styles.heading}>Change Password</Text>
       <View style={styles.textInputContainer}>
       <TextInput
         style={styles.input}
-        placeholder="New Password"
+        placeholder="Enter New Password"
         value={newPassword}
         onChangeText={setNewPassword}
         secureTextEntry
@@ -47,21 +51,29 @@ const EnterNewPasswordScreen = ({ route, navigation }) => {
       </TouchableOpacity>
       
     </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:'#0B1631',
+    // backgroundColor:'#0B1631',
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  backgroundGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    width: '100%',
+    height: '100%',
   },
   heading:{
     fontSize: 30,
     fontWeight: 'bold',
     color:'white',
-    bottom:20
+    bottom:10
 },
 textInputContainer: {
     alignItems: 'center',
@@ -70,9 +82,9 @@ textInputContainer: {
   },
   input: {
     height: 40,
-    width: 200,
+    width: 250,
     backgroundColor: '#fff',
-    borderRadius: 15,
+    borderRadius: 8,
     fontStyle: 'italic',
     paddingRight: 10,
     paddingLeft: 10,
@@ -83,12 +95,12 @@ textInputContainer: {
   },
   myButton: {
     top: 30,
-    backgroundColor: '#266FDC',
+    backgroundColor: '#8f1294',
     height: 40,
     width: 150,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 50,
+    borderRadius: 10,
   },
 });
 

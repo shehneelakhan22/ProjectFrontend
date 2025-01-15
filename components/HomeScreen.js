@@ -116,7 +116,11 @@ const HomeScreen = ({ navigation, route }) => {
   
   useEffect(() => {
     if (!isCoinSelected) {
-      setSelectionMessage('Please select a coin from the Live Prices tab before starting.');
+      setSelectionMessage(
+        <Text>
+      Please select a coin from the <Text style={{ fontWeight: 'bold' }}>Live Prices</Text> tab before starting.
+    </Text>
+      );
     } else {
       setSelectionMessage('');
     }
@@ -124,7 +128,11 @@ const HomeScreen = ({ navigation, route }) => {
 
   useEffect(() => {
     if (!selectedTime) {
-      setAlertError('Please select timeframe from the Bot Scalping Signals tab to see alerts.');
+      setAlertError(
+        <Text>
+      Please select timeframe from the <Text style={{ fontWeight: 'bold' }}>Bot Scalping Signals</Text> tab to see alerts.
+    </Text>
+      );
     } else {
       setAlertError(''); 
     }
@@ -262,8 +270,8 @@ const HomeScreen = ({ navigation, route }) => {
           <View style={styles.pricesTextContainer}>
             {livePrice !== null && (
               <Text style={styles.displayCurrentPrice}>
-                <Text style={{ color: 'green', fontStyle: 'italic', fontWeight: 'bold' }}>
-                  {selectedValue}: </Text>{livePrice.toFixed(2)}
+                <Text style={{ color: 'white', fontStyle: 'italic', fontWeight: 'bold' }}>
+                  {selectedValue}/USDT: </Text>{livePrice.toFixed(2)}
                 <Text style={styles.usdStyle}>USDT</Text>
               </Text>
             )}
@@ -284,14 +292,14 @@ const HomeScreen = ({ navigation, route }) => {
           </View>
           {selectedIndicator === 'BollingerBands' && indicatorData.upper_band && (
             <View>
-              <Text>Upper Band: {indicatorData.upper_band.toFixed(2)}</Text>
-              <Text>Middle Band: {indicatorData.middle_band.toFixed(2)}</Text>
-              <Text>Lower Band: {indicatorData.lower_band.toFixed(2)}</Text>
+              <Text style={styles.bbandText}>Upper Band: <Text style={styles.bbandValue}>{indicatorData.upper_band.toFixed(2)}</Text></Text>
+              <Text style={styles.bbandText}>Middle Band: <Text style={styles.bbandValue}>{indicatorData.middle_band.toFixed(2)}</Text></Text>
+              <Text style={styles.bbandText}>Lower Band: <Text style={styles.bbandValue}>{indicatorData.lower_band.toFixed(2)}</Text></Text>
             </View>
           )}
           {selectedIndicator === 'RSI' && indicatorData.rsi_value && (
             <View>
-              <Text style={styles.rsiText}>RSI Value: {indicatorData.rsi_value.toFixed(2)}</Text>
+              <Text style={styles.rsiText}>RSI Value: <Text style={styles.rsiValue}>{indicatorData.rsi_value.toFixed(2)}</Text></Text>
             </View>
           )}
         </>
@@ -310,8 +318,8 @@ const HomeScreen = ({ navigation, route }) => {
         <View style={styles.pricesTextContainer}>
             {livePrice !== null && (
               <Text style={styles.displayCurrentPrice}>
-                <Text style={{ color: 'green', fontStyle: 'italic', fontWeight: 'bold' }}>
-                  {selectedValue}: </Text>{livePrice.toFixed(2)}
+                <Text style={{ color: 'white', fontStyle: 'italic', fontWeight: 'bold' }}>
+                  {selectedValue}/USDT: </Text>{livePrice.toFixed(2)}
                 <Text style={styles.usdStyle}>USDT</Text>
               </Text>
             )}
@@ -380,7 +388,7 @@ const HomeScreen = ({ navigation, route }) => {
 
   return (
     <LinearGradient
-      colors={['black', '#3d0615']}
+      colors={['black', '#2c032e']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }} // Changed to vertical gradient
       style={styles.gradientBackground}>
@@ -389,7 +397,7 @@ const HomeScreen = ({ navigation, route }) => {
         <View style={styles.header}>
           <Text style={styles.title}>Crypto Trading Bot</Text>
           <TouchableOpacity style={styles.userIcon} onPress={() => navigation.navigate('Profile')}>
-            <Image source={require('../assets/usericon.png')} style={styles.userIconImage} />
+            <Image source={require('../assets/setting.png')} style={styles.userIconImage} />
           </TouchableOpacity>
         </View>
         <View style={styles.tabContainer}>
@@ -513,7 +521,7 @@ const styles = StyleSheet.create({
  
   displayCurrentPrice: {
     marginLeft: 10,
-    color: '#63B8CE',
+    color: '#00FF00',
     fontSize: 25,
     fontWeight: 'bold',
   },
@@ -550,13 +558,25 @@ const styles = StyleSheet.create({
     height: 380,
     width: '121%',
   },
+  bbandText: {
+    fontSize: 17,
+    color: 'white'
+  },
+  bbandValue: {
+    color: '#00FF00',
+  },
   rsiText: {
     fontSize: 17,
+    color:'white'
+  },
+  rsiValue: {
+    fontSize: 17,
+    color:'#00FF00'
   },
   startButton: {
     marginTop: 140,
-    borderRadius: 50,
-    backgroundColor: '#63B8CE',
+    borderRadius: 20,
+    backgroundColor: '#8f1294',
     height: 50,
     width: 210,
     alignItems: 'center',
@@ -586,7 +606,7 @@ const styles = StyleSheet.create({
   },
   selectionMessage: {
     fontSize: 16,
-    color: 'red',
+    color: '#FF0000',
     textAlign: 'center',
     marginTop: 20,
   },

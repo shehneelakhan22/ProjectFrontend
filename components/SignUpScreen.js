@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, ImageBackground } from 'react-native';
 import { BACKEND_API_URL } from './configUrl';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const SignUpScreen = ({ navigation }) => {
   const [emailText, setEmailText] = useState('');
@@ -61,7 +62,11 @@ const SignUpScreen = ({ navigation }) => {
   };
 
   return (
-    <ImageBackground source={require('../assets/bg5.jpg')} style={styles.backgroundImage}>
+    <LinearGradient
+          // Define the gradient colors (top to bottom)
+          colors={['#000000', '#2c032e', '#000000']} 
+          style={styles.backgroundGradient} // Apply gradient to full screen
+        >
     <View style={styles.container}>
       <View style={styles.textInputContainer}>
         <TextInput
@@ -105,7 +110,7 @@ const SignUpScreen = ({ navigation }) => {
         <Text style={styles.signUpButtonText}>Sign Up</Text>
       </TouchableOpacity>
     </View>
-    </ImageBackground>
+    </LinearGradient>
   );
 };
 
@@ -116,14 +121,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backgroundImage: {
+  backgroundGradient: {
     flex: 1,
-    resizeMode: 'cover',
-    justifyContent: "center",
+    justifyContent: 'center',
     alignSelf: 'center',
-    width: "100%",
-    height: "100%",
+    width: '100%',
+    height: '100%',
   },
+  // backgroundImage: {
+  //   flex: 1,
+  //   resizeMode: 'cover',
+  //   justifyContent: "center",
+  //   alignSelf: 'center',
+  //   width: "100%",
+  //   height: "100%",
+  // },
   textInputContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -131,12 +143,12 @@ const styles = StyleSheet.create({
   },
   myButton: {
     top: 20,
-    backgroundColor: '#266FDC',
+    backgroundColor: '#8f1294',
     height: 40,
     width: 150,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 50,
+    borderRadius: 10,
   },
   signUpButtonText: {
     color: '#fff',
@@ -146,7 +158,7 @@ const styles = StyleSheet.create({
     height: 40,
     width: 200,
     backgroundColor: '#fff',
-    borderRadius: 15,
+    borderRadius: 10,
     borderWidth: 0,
     fontStyle: 'italic',
     paddingRight: 10,

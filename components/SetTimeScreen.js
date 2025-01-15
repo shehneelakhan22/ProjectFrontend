@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { RadioButton } from 'react-native-paper';
 import { BACKEND_API_URL } from './configUrl';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const TimeScreen = ({ navigation, route }) => {
   const [selectedTime, setSelectedTime] = useState(null);
@@ -28,14 +29,18 @@ const TimeScreen = ({ navigation, route }) => {
         console.error(error);
       }
     } else {
-      setError('Please select a time interval');
+      setError('Please select a timeframe');
     }
   };
   
 
   return (
+    <LinearGradient
+          colors={['#000000', '#2c032e', '#000000']} 
+          style={styles.backgroundGradient} // Apply gradient to full screen
+        >
     <View style={styles.container}>
-      <Text style={styles.title}>Select Time Interval</Text>
+      <Text style={styles.title}>Select TimeFrame</Text>
 
       <RadioButton.Group
         onValueChange={newValue => {
@@ -73,6 +78,7 @@ const TimeScreen = ({ navigation, route }) => {
         <Text style={styles.nextButtonText}>Next</Text>
       </TouchableOpacity>
     </View>
+    </LinearGradient>
   );
 };
 
@@ -81,7 +87,14 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0B1631',
+    // backgroundColor: '#0B1631',
+  },
+  backgroundGradient: {
+    flex: 1,
+    justifyContent: 'center',
+    alignSelf: 'center',
+    width: '100%',
+    height: '100%',
   },
   title: {
     fontWeight: 'bold',
@@ -99,10 +112,10 @@ const styles = StyleSheet.create({
   },
   nextButton: {
     marginTop: 30,
-    borderRadius: 50,
-    backgroundColor: '#63B8CE',
+    borderRadius: 10,
+    backgroundColor: '#8f1294',
     height: 50,
-    width: 210,
+    width: 180,
     alignItems: 'center',
     justifyContent: 'center',
   },

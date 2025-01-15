@@ -44,9 +44,6 @@ export default function App() {
 
   return (
     <ScrollView style={styles.container}>
-      <Text style={styles.title}>Crypto Tracker</Text>
-
-      <Text>Select Cryptocurrency:</Text>
       <RNPickerSelect
         selectedValue={cryptoSymbol}
         onValueChange={(itemValue) => setCryptoSymbol(itemValue)}
@@ -107,12 +104,6 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 16,
     backgroundColor: '#fff',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 20,
   },
   chartContainer: {
     marginTop: 20,

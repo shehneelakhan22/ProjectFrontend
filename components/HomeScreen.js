@@ -233,20 +233,21 @@ const HomeScreen = ({ navigation, route }) => {
               />
             </View>
             <View style={styles.pricesTextContainer}>
+            {livePrice !== null && (
+                  <>
               <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold', marginTop: 10 }}>
-                Selected Coin: 
-                <Text style={{ color: 'green', fontSize: 20, fontWeight: 'bold' }}> {selectedValue}</Text>
+                {/*Selected Coin: */}
+                <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}> {selectedValue}/USDT</Text>
               </Text>
               <View style={{ flexDirection: 'row' }}>
-                {livePrice !== null && (
-                  <>
+                
                     <Text style={styles.selectedCurrency}>
                       {livePrice.toFixed(2)}<Text style={styles.usdStyle}>USDT</Text>
-                    </Text>
-                    
-                  </>
-                )}
+                    </Text> 
               </View>
+              </>
+            )}
+            
             </View>
             <View style={styles.chartContainer}>
               {selectedValue && <CandleStickChartComponent coin={selectedValue} />}
@@ -504,7 +505,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   selectedCurrency: {
-    color: '#63B8CE',
+    color: '#00FF00',
     fontSize: 40,
     fontWeight: 'bold',
     marginTop: -4,
@@ -517,7 +518,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   usdStyle: {
-    color:'#63B8CE',
+    color:'gray',
     fontSize: 18,
     fontWeight: '400',
     fontStyle:'italic',

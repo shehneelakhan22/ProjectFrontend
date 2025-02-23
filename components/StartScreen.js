@@ -5,13 +5,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 const StartScreen = ({ navigation }) => {
   return (
     <LinearGradient
-      colors={['#000000', '#2c032e', '#000000']} 
+      colors={['#000000', '#010b30', '#000000']} 
       style={styles.backgroundGradient} // Apply gradient to full screen
     >
       <View style={styles.container}>
         
         <Image
-                source={require('../assets/splash.png')}
+                source={require('../assets/Logo.png')}
                 style={styles.logostyle}
               />
         <TouchableOpacity
@@ -48,14 +48,15 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   logostyle: {
-    marginTop:-40,
+    marginTop:-100,
     marginBottom: -50,
     height: 292,
     width: 292,
     borderRadius: 100,
   },
   myButton: {
-    backgroundColor: '#8f1294',
+    // backgroundColor: '#8f1294',
+    backgroundColor:'#2196F3',
     height: 40,
     width: 150,
     alignItems: 'center',
@@ -63,7 +64,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   signUpButtonText: {
-    color: '#fff',
+    color:'#fff',
+    fontWeight:'500',
     fontSize: 16,
   },
   loginContainer: {
@@ -76,7 +78,7 @@ const styles = StyleSheet.create({
   },
   loginText: {
     fontSize: 16,
-    color: '#8f1294',
+    color: '#2196F3',
     textDecorationLine: 'underline',
   },
 });

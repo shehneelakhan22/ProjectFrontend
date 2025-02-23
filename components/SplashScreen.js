@@ -7,12 +7,12 @@ const SplashScreen = () => {
   return (
     <LinearGradient
       // Define the gradient colors (top to bottom)
-      colors={['#000000', '#2c032e', '#000000']} 
+      colors={['#000000', '#010b30', '#000000']} 
       style={styles.backgroundGradient} // Apply gradient to full screen
     >
     <View style={styles.container}>
       <Image
-        source={require('../assets/splash.png')}
+        source={require('../assets/Logo.png')}
         style={styles.logostyle}
       />
       {/* <Text style={styles.textStyle}>Binance Trading Bot</Text> */}

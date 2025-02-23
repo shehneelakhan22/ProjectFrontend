@@ -64,7 +64,7 @@ const SignUpScreen = ({ navigation }) => {
   return (
     <LinearGradient
           // Define the gradient colors (top to bottom)
-          colors={['#000000', '#2c032e', '#000000']} 
+          colors={['#000000', '#010b30', '#000000']} 
           style={styles.backgroundGradient} // Apply gradient to full screen
         >
     <View style={styles.container}>
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
   },
   myButton: {
     top: 20,
-    backgroundColor: '#8f1294',
+    backgroundColor: '#2196F3',
     height: 40,
     width: 150,
     alignItems: 'center',

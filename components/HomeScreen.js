@@ -388,16 +388,16 @@ const HomeScreen = ({ navigation, route }) => {
 
   return (
     <LinearGradient
-      colors={['black', '#2c032e']}
+      colors={['black', '#010b30']}
       start={{ x: 0, y: 0 }}
       end={{ x: 0, y: 1 }} // Changed to vertical gradient
       style={styles.gradientBackground}>
 
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Crypto Trading Bot</Text>
+          <Text style={styles.title}>Crypto Analyzer</Text>
           <TouchableOpacity style={styles.userIcon} onPress={() => navigation.navigate('Profile')}>
-            <Image source={require('../assets/setting.png')} style={styles.userIconImage} />
+            <Image source={require('../assets/set.png')} style={styles.userIconImage} />
           </TouchableOpacity>
         </View>
         <View style={styles.tabContainer}>

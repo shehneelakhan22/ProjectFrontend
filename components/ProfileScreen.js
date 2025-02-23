@@ -74,7 +74,7 @@ const ProfileScreen = () => {
 
   return (
     <LinearGradient
-          colors={['#000000', '#2c032e', '#000000']} 
+          colors={['#000000', '#010b30', '#000000']} 
           style={styles.backgroundGradient} // Apply gradient to full screen
         >
       <View style={styles.container}>
@@ -90,14 +90,14 @@ const ProfileScreen = () => {
             <Text style={styles.InfoStyle}>{userInfo.username}</Text>
           </View>
 
-        <View style={styles.line} />
+          <View style={{ height: 1, backgroundColor: '#ccc', }} />
 
           <View style={styles.profileElements}>
             <Text style={styles.InfoHeading}>Email</Text>
             <Text style={styles.InfoStyle}>{userInfo.email}</Text>
           </View>
-
-          <View style={styles.line} />
+        
+          <View style={{ height: 2, backgroundColor: '#ccc', }} />
 
           <TouchableOpacity onPress={() => navigation.navigate('Password')}>
           <View style={styles.profilePassword}>
@@ -239,7 +239,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 20,
     width: '100%',
-    height: 210,
+    height: 214,
   },
   profileElements: {
     justifyContent: 'center',
@@ -248,10 +248,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'transparent',
     borderRadius: 10,
-  },
-  line: {
-    height: 1,
-    backgroundColor: '#ccc',
   },
   // Apply gradient to full screen
   InfoHeading: {
@@ -290,7 +286,6 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     borderRadius: 10,
     paddingLeft: 10,
-    borderWidth: 1,
   },
   changePassword: {
     color: 'black',

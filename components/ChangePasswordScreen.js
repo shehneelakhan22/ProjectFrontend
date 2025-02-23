@@ -4,20 +4,39 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const ChangePasswordScreen = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
+  const [error, setError] = useState('');
+
+  const storedPassword = "user123";
 
   const handleNext = () => {
-    // Navigate to the EnterNewPasswordScreen with the current password
-    navigation.navigate('ChangePassword', { currentPassword });
+    if (!currentPassword) {
+      setError('Enter password'); // Error for empty input
+    } else if (currentPassword === storedPassword) {
+      setError(''); // Clear previous errors
+      navigation.navigate('ChangePassword', { currentPassword });
+    } else {
+      setError('Incorrect password. Please try again.');
+    }
   };
+  
 
   return (
     <LinearGradient
-          colors={['#000000', '#2c032e', '#000000']} 
+          colors={['#000000', '#010b30', '#000000']} 
           style={styles.backgroundGradient} // Apply gradient to full screen
         >
+
     <View style={styles.container}>
-      <Text style={styles.heading}>Change Password</Text>
+      <Text style={styles.heading}>Password</Text>
+      <View style={styles.directionTextView}>
+      <Text style={styles.directionText}>To set a new password, please enter your current password first.</Text>
+      </View>
+
       <View style={styles.textInputContainer}>
+
+    <View style={{justifyContent:'flex-start'}}>
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
       <TextInput
         style={styles.input}
         placeholder="Current Password"
@@ -25,6 +44,7 @@ const ChangePasswordScreen = ({ navigation }) => {
         onChangeText={setCurrentPassword}
         secureTextEntry
       />
+      </View>
       </View>
 
       <TouchableOpacity
@@ -43,7 +63,6 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    // backgroundColor:'#0B1631'
   },
   backgroundGradient: {
     flex: 1,
@@ -53,23 +72,32 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   heading:{
-      fontSize: 30,
-      fontWeight: 'bold',
+      fontSize: 26,
       color:'white',
-      bottom:150
+      fontWeight: 500,
+  },
+  directionTextView:{
+    width:280,
+    marginTop:10
+  },
+  directionText:{
+    color:'#fff',
+    fontSize: 12,
+    textAlign:'center'
   },
   textInputContainer: {
+    height:60,
     alignItems: 'center',
     justifyContent: 'center',
-    bottom:70,
+    marginTop:30
   },
   NextButtonText: {
     color: '#fff',
     fontSize: 16,
   },
   myButton: {
-    bottom: 30,
-    backgroundColor: '#8f1294',
+    marginTop: 30,
+    backgroundColor: '#2196F3',
     height: 40,
     width: 150,
     alignItems: 'center',
@@ -78,12 +106,19 @@ const styles = StyleSheet.create({
   },
   input: {
     height: 40,
-    width: 230,
+    width: 300,
     backgroundColor: '#fff',
     borderRadius: 8,
+    borderWidth: 0,
     fontStyle: 'italic',
     paddingRight: 10,
     paddingLeft: 10,
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 14,
+    fontWeight: 'bold',
+    marginBottom: 5, // Space between error message and input
   },
 });
 

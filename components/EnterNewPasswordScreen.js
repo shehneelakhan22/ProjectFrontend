@@ -20,15 +20,18 @@ const EnterNewPasswordScreen = ({ route, navigation }) => {
 
   return (
     <LinearGradient
-              colors={['#000000', '#2c032e', '#000000']} 
+              colors={['#000000', '#010b30', '#000000']} 
               style={styles.backgroundGradient} // Apply gradient to full screen
             >
     <View style={styles.container}>
-      <Text style={styles.heading}>Change Password</Text>
+      <Text style={styles.heading}>New Password</Text>
+      <View style={styles.directionTextView}>
+            <Text style={styles.directionText}>Please enter a new password.</Text>
+            </View>
       <View style={styles.textInputContainer}>
       <TextInput
         style={styles.input}
-        placeholder="Enter New Password"
+        placeholder="New Password"
         value={newPassword}
         onChangeText={setNewPassword}
         secureTextEntry
@@ -37,7 +40,7 @@ const EnterNewPasswordScreen = ({ route, navigation }) => {
       <View style={styles.textInputContainer}>
       <TextInput
         style={styles.input}
-        placeholder="Confirm New Password"
+        placeholder="Confirm Password"
         value={confirmPassword}
         onChangeText={setConfirmPassword}
         secureTextEntry
@@ -70,19 +73,27 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   heading:{
-    fontSize: 30,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: 500,
     color:'white',
-    bottom:10
+},
+directionTextView:{
+  width:280,
+  marginTop:10
+},
+directionText:{
+  color:'#fff',
+  fontSize: 12,
+  textAlign:'center'
 },
 textInputContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop:30
+    marginTop:20
   },
   input: {
     height: 40,
-    width: 250,
+    width: 300,
     backgroundColor: '#fff',
     borderRadius: 8,
     fontStyle: 'italic',
@@ -94,8 +105,8 @@ textInputContainer: {
     fontSize: 16,
   },
   myButton: {
-    top: 30,
-    backgroundColor: '#8f1294',
+    marginTop: 20,
+    backgroundColor: '#2196F3',
     height: 40,
     width: 150,
     alignItems: 'center',

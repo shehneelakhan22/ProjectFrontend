@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert } from 'react-native';
 import { BACKEND_API_URL } from './configUrl';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -21,7 +21,7 @@ const LoginScreen = ({ navigation }) => {
       });
 
       if (response.status === 200) {
-        Alert.alert("Success", response.data.message);
+        // Alert.alert("Success", response.data.message);
         navigation.navigate('Home');
       } else {
         Alert.alert("Error", response.data.error);
@@ -33,10 +33,10 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient
-          colors={['#000000', '#010b30', '#000000']} 
-          style={styles.backgroundGradient} // Apply gradient to full screen
-        >
+    // <LinearGradient
+    //       colors={['#000000', '#010b30', '#000000']} 
+    //       style={styles.backgroundGradient} 
+    //     >
     <View style={styles.container}>
       <View style={styles.textInputContainer}>
         <TextInput
@@ -63,14 +63,14 @@ const LoginScreen = ({ navigation }) => {
         <Text style={styles.signInButtonText}>Sign in</Text>
       </TouchableOpacity>
     </View>
-    </LinearGradient>
+    // </LinearGradient> 
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'trasnparent',
+    backgroundColor: 'black',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -97,20 +97,20 @@ const styles = StyleSheet.create({
   myButton: {
     top: 20,
     // backgroundColor: '#8f1294',
-    backgroundColor:'#2196F3',
+    backgroundColor:'#b29705',
     height: 40,
-    width: 150,
+    width: 230,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: 50,
   },
   signInButtonText: {
     color: '#fff',
     fontSize: 16,
   },
   textInputStyle: {
-    height: 40,
-    width: 200,
+    height: 45,
+    width: 230,
     backgroundColor: '#fff',
     borderRadius: 10,
     borderWidth: 0,

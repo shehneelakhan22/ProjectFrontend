@@ -1,27 +1,27 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, Button, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
 import { Dimensions } from 'react-native';
 import axios from 'axios';
-import RNPickerSelect from 'react-native-picker-select';
 import { WebView } from 'react-native-webview';
 
 // Screen width for the WebView
 const screenWidth = Dimensions.get('window').width;
 
-export default function App() {
-  const [cryptoSymbol, setCryptoSymbol] = useState('BTCUSDT');
+const CandleStickChartComponent = ({ coin }) => {
   const [loading, setLoading] = useState(false);
 
   // Function to fetch candlestick data from Flask API
   const fetchCandlestickData = async (symbol) => {
+    if (!symbol) return;
+
     setLoading(true);
     try {
-      const url = `http://192.168.100.14:5000/api/candlestick?symbol=${symbol.split('USDT')[0]}&limit=100`;
+      const url = `http://192.168.100.14:5000/api/candlestick?symbol=${symbol}&limit=100`;
       console.log("API URL:", url); // Log the API URL to confirm it's correct
-  
+
       const response = await axios.get(url);
       const data = response.data;
-  
+
       if (data && data.candle_data) {
         console.log('Candlestick Data:', data.candle_data);
       } else {
@@ -33,52 +33,18 @@ export default function App() {
       setLoading(false);
     }
   };
-  
-  // Fetch data whenever the crypto symbol changes
-  useEffect(() => {
-    fetchCandlestickData(cryptoSymbol);
-  }, [cryptoSymbol]);
 
-  // TradingView Widget URL (Optional)
-  const tradingViewWidgetUrl = `https://www.tradingview.com/chart/?symbol=BINANCE%3A${cryptoSymbol}`;
+  // Fetch data whenever the selected coin changes
+  useEffect(() => {
+    fetchCandlestickData(coin);
+  }, [coin]);
+
+  // TradingView Widget URL
+  const tradingViewWidgetUrl = `https://www.tradingview.com/chart/?symbol=BINANCE%3A${coin}USDT`;
 
   return (
     <ScrollView style={styles.container}>
-      <RNPickerSelect
-        selectedValue={cryptoSymbol}
-        onValueChange={(itemValue) => setCryptoSymbol(itemValue)}
-        items={[
-          { label: 'Bitcoin (BTC)', value: 'BTCUSDT' },
-          { label: 'Ethereum (ETH)', value: 'ETHUSDT' },
-          { label: 'Binance Coin (BNB)', value: 'BNBUSDT' },
-          { label: 'Solana (SOL)', value: 'SOLUSDT' },
-          // Add more cryptocurrencies as needed
-        ]}
-        style={{
-          inputIOS: {
-            height: 50,
-            width: '100%',
-            paddingHorizontal: 10,
-            borderWidth: 1,
-            borderColor: 'gray',
-            borderRadius: 4,
-            color: 'black',
-            paddingRight: 30, // to make space for the icon
-          },
-          inputAndroid: {
-            height: 50,
-            width: '100%',
-            paddingHorizontal: 10,
-            borderWidth: 1,
-            borderColor: 'gray',
-            borderRadius: 4,
-            color: 'black',
-            paddingRight: 30, // to make space for the icon
-          },
-        }}
-      />
-
-      <Button title="Fetch Data" onPress={() => fetchCandlestickData(cryptoSymbol)} />
+      {/* <Text style={styles.title}>Candlestick Chart for {coin}/USDT</Text> */}
 
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
@@ -97,7 +63,7 @@ export default function App() {
       )}
     </ScrollView>
   );
-}
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -105,8 +71,15 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: '#fff',
   },
+  title: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    marginBottom: 10,
+  },
   chartContainer: {
-    marginTop: 20,
     alignItems: 'center',
   },
 });
+
+export default CandleStickChartComponent;

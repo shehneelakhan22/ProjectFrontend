@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import RNPickerSelect from 'react-native-picker-select';
+import { Picker } from '@react-native-picker/picker';
+import { RadioButton } from 'react-native-paper';
 import CandleStickChartComponent from './CandleStickChartComponent';
 import { BACKEND_API_URL } from './configUrl';
 
 const HomeScreen = ({ navigation, route }) => {
-  const [selectedTab, setSelectedTab] = useState('LivePrices');
+  const [selectedTab, setSelectedTab] = useState('CryptoSignals');
   const [selectedValue, setSelectedValue] = useState(null);
   const [livePrice, setLivePrice] = useState(null);
   const [selectedIndicator, setSelectedIndicator] = useState(null);
@@ -20,24 +22,19 @@ const HomeScreen = ({ navigation, route }) => {
   const [alertError, setAlertError] = useState('');
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [previousPrice, setPreviousPrice] = useState(null);  // Track previous price
-  const [priceChangeDirection, setPriceChangeDirection] = useState(null); // Track price direction
+  const [selectedTicker, setSelectedTicker] = useState(null);
+  const [selectedTimeframe, setSelectedTimeframe] = useState(null);
+  const [investmentAmount, setInvestmentAmount] = useState(null);
 
 
-
-  useEffect(() => {
-    if (previousPrice !== null) {
-      if (livePrice > previousPrice) {
-        setPriceChangeDirection('up'); // Price went up
-      } else if (livePrice < previousPrice) {
-        setPriceChangeDirection('down'); // Price went down
-      }
+  const startBot = () => {
+    if (selectedTimeframe && selectedTicker && investmentAmount) {
+      console.log(`Bot started with timeframe: ${selectedTimeframe} minutes`);
+      // Add logic to start the bot with the selected timeframe
+    } else {
+      alert('Please select comlete all fields before starting the bot.');
     }
-    setPreviousPrice(livePrice);
-  }, [livePrice]);
-
-  // Style for price based on its direction (up or down)
-  const priceStyle = priceChangeDirection === 'up' ? { color: 'green' } : priceChangeDirection === 'down' ? { color: 'red' } : {};
+  };
   
   useEffect(() => {
     if (selectedTime) {
@@ -222,50 +219,115 @@ const HomeScreen = ({ navigation, route }) => {
 
   const renderContent = () => {
     switch (selectedTab) {
-      case 'LivePrices':
+      case 'CryptoSignals':
         return (
           <>
-            <View style={styles.coinsDropDown}>
-              <RNPickerSelect
-                onValueChange={(value) => setSelectedValue(value)}
+          <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+            <Text style={styles.StartTradeText}>Start Crypto Trade</Text>
+          <View style={styles.CryptoInputContainer}>
+          <Text style={styles.labelStyling}>Select Cryptocurrency:</Text>
+          <View style={{alignItems:'center'}}>
+          <View style={styles.coinsDropDownInCryptoSignals}>
+              <RNPickerSelect 
+                onValueChange={(value) => setSelectedTicker(value)}
                 items={[
-                  { label: 'BTC/USDT', value: 'BTC' },
-                  { label: 'ETH/USDT', value: 'ETH' },
-                  { label: 'BNB/USDT', value: 'BNB' },
+                  { label: 'Bitcoin (BTC)', value: 'BTC' },
+                  { label: 'Ethereum (ETH)', value: 'ETH' },
+                  { label: 'Cardano (ADA)', value: 'ADA'},
+                  { label: 'Solana (SOL)', value: 'SOL'},
+                  { label: 'Binance Coin (BNB)', value: 'BNB'},
                 ]}
                 style={pickerSelectStyles.inputAndroid}
                 placeholder={{
-                  label: 'Select coin',
-                  vAalue: null,
+                  label: 'Select a coin....',
+                  value: null,
                 }}
               />
             </View>
-            <View style={styles.pricesTextContainer}>
-            {livePrice !== null && (
-                  <>
-              <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold', marginTop: 10 }}>
-                {/*Selected Coin: */}
-                <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}> {selectedValue}/USDT</Text>
-              </Text>
-              <View style={{ flexDirection: 'row' }}>
-                
-                    <Text style={styles.selectedCurrency}>
-                      {livePrice.toFixed(2)}<Text style={styles.usdStyle}>USDT</Text>
-                    </Text> 
+            </View>
+            </View>
+
+       <View style={styles.TimeframeInputContainer}>    
+        <Text style={styles.labelStyling}>Select Timeframe:</Text>
+      <View style={{alignItems:'center'}}>
+      <RadioButton.Group
+                onValueChange={value => {setSelectedTimeframe(value);
+                  setError(''); // Clear error when an option is selected
+                }}
+                value={selectedTimeframe}
+              >
+                <RadioButton.Item
+                  label="1 minute"
+                  value="1m"
+                  labelStyle={styles.radioLabel}
+                  mode="android"
+                  style={styles.radioItem}
+                  // position="leading"
+                />
+                <RadioButton.Item
+                  label="5 minutes"
+                  value="5m"
+                  labelStyle={styles.radioLabel}
+                  mode="android"
+                  style={styles.radioItem}
+                  // position="leading"
+                />
+                <RadioButton.Item
+                  label="15 minutes"
+                  value="15m"
+                  labelStyle={styles.radioLabel}
+                  mode="android"
+                  style={styles.radioItem}
+                  // position="leading"
+                />
+              </RadioButton.Group>
               </View>
-              </>
-            )}
-            
-            </View>
-            <View style={styles.chartContainer}>
-              {selectedValue && <CandleStickChartComponent coin={selectedValue} />}
-            </View>
+        </View>
+
+        <View style={styles.inputContainer}>
+  <Text style={styles.labelStyling}>Add Amount:</Text>
+  <View style={styles.InputContainerStyling}>
+  <TextInput
+  style={[
+    styles.textInputinputStyling,
+    { color: investmentAmount === '0$' ? 'gray' : 'white' }, // Change text color based on input
+  ]}
+    keyboardType="numeric"
+    placeholder="0$"
+    placeholderTextColor="gray"
+    value={investmentAmount}
+    onChangeText={(text) => {
+      // Remove non-numeric characters except the dollar sign
+      let numericValue = text.replace(/[^0-9]/g, '');
+
+      // Ensure 0 is removed when user starts typing
+      if (numericValue.startsWith('0') && numericValue.length > 1) {
+        numericValue = numericValue.slice(1);
+      }
+
+      // Update state with formatted value
+      setInvestmentAmount(numericValue ? `${numericValue}$` : '0$');
+    }}
+  />
+  </View>
+</View>
+
+        
+        <View style={styles.buttonView}>
+        <TouchableOpacity style={styles.startButton} onPress={startBot}>
+
+          <Text style={styles.startButtonText}>Start</Text>
+        </TouchableOpacity>
+        </View>
+              
+      </ScrollView>
           </>
         );
-      case 'Indicators':
+
+      case 'PricePrediction':
       return (
       <>
-       {selectedValue ? (
+       {/* {selectedValue ? (
         <>
           <View style={styles.pricesTextContainer}>
             {livePrice !== null && (
@@ -285,7 +347,7 @@ const HomeScreen = ({ navigation, route }) => {
               ]}
               style={pickerSelectStyles.inputAndroid}
               placeholder={{
-                label: 'Select indicator...',
+                label: 'Select an indicator...',
                 value: null,
               }}
             />
@@ -308,126 +370,203 @@ const HomeScreen = ({ navigation, route }) => {
         <View style={{marginTop: 73}}>
         <Text style={styles.selectionMessage}>{selectionMessage}</Text>
         </View>
-      )}
+      )} */}
+      <Text style={{color:'white'}}>Price Prediction</Text>
     </>
   );
 
-  case 'BotScalpingSignals':
-    return (
-     <>
-        <View style={styles.pricesTextContainer}>
+
+      case 'LivePrices':
+        return (
+          <>
+          <View style={styles.coinAndIndicatorsSelectionContainer}>
+            <View style={styles.coinsDropDown}>
+              <RNPickerSelect
+                onValueChange={(value) => setSelectedValue(value)}
+                items={[
+                  { label: 'BTC/USDT', value: 'BTC' },
+                  { label: 'ETH/USDT', value: 'ETH' },
+                  { label: 'BNB/USDT', value: 'BNB' },
+                ]}
+                style={pickerSelectStyles.inputAndroid}
+                placeholder={{
+                  label: 'Select a coin',
+                  value: null,
+                }}
+              />
+            </View>
+            
+       <View style={styles.indicatorsDropDown}>
+            <RNPickerSelect
+              onValueChange={(value) => setSelectedIndicator(value)}
+              items={[
+                { label: 'Bollinger Bands', value: 'BollingerBands' },
+                { label: 'Relative Strength Index', value: 'RSI' },
+              ]}
+              style={pickerSelectStyles.inputAndroid}
+              placeholder={{
+                label: 'Select an indicator...',
+                value: null,
+                color: 'gray',
+              }}
+            />
+          </View>   
+            </View> 
+
+            <View style={styles.coinAndIndicatorsDisplayContainer}>
+
+            <View style={styles.pricesTextContainer}>
             {livePrice !== null && (
-              <Text style={styles.displayCurrentPrice}>
-                <Text style={{ color: 'white', fontStyle: 'italic', fontWeight: 'bold' }}>
-                  {selectedValue}/USDT: </Text>{livePrice.toFixed(2)}
-                <Text style={styles.usdStyle}>USDT</Text>
+                  <>
+              <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold', marginTop: 10 }}>
+                {/*Selected Coin: */}
+                <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}> {selectedValue}/USDT</Text>
               </Text>
+              <View style={{ flexDirection: 'row' }}>
+                
+                    <Text style={styles.selectedCurrency}>
+                      {livePrice.toFixed(2)}<Text style={styles.usdStyle}>USDT</Text>
+                    </Text> 
+              </View>
+              </>
             )}
-          </View>
-      {selectedTime ? (
-        <View style={{ marginTop: 15 }}>
-          <Text style={styles.selectedTimeTextStyle}>
-            Time Frame:<Text style={styles.selectedTimeStyle}> {selectedTime}</Text>
-          </Text>
-          <Text style={styles.countdownStyle}>{countdown}</Text>
-        </View>
-      ) : (
-        !isCoinSelected ? (    // if no coin seleted, Display the message 
-          <Text style={styles.selectionMessage}>{selectionMessage}</Text>
-        ) : (
-          <TouchableOpacity
-            style={styles.startButton}
-            onPress={() => navigation.navigate('Time', { selectedValue })}
-          >
-            <Text style={styles.startButtonText}>Get Started</Text>
-          </TouchableOpacity>
-        )
-      )}
-    </>
-  );
+            
+            </View>
 
-   case 'Alerts':
-    return (
-      <ScrollView contentContainerStyle={{ padding: 10 }}>
-        {alerts.length > 0 ? (
-          alerts
-            .slice()
-            .reverse()
-            .map((alert, index) => {
-              const createdAt = new Date(alert.created_at);
-              const timeString = createdAt.toLocaleTimeString('en-US', {
-                hour: '2-digit',
-                minute: '2-digit',
-                second: '2-digit',
-              });
+            <View style={{ marginTop:14}}>
+            {selectedValue ? (
+        <>
+          {selectedIndicator === 'BollingerBands' && indicatorData.upper_band && (
+            <View style={{alignItems:'center'}}>
+              <Text style={styles.bbandText}>Upper Band: <Text style={styles.bbandValue}>{indicatorData.upper_band.toFixed(2)}</Text></Text>
+              <Text style={styles.bbandText}>Middle Band: <Text style={styles.bbandValue}>{indicatorData.middle_band.toFixed(2)}</Text></Text>
+              <Text style={styles.bbandText}>Lower Band: <Text style={styles.bbandValue}>{indicatorData.lower_band.toFixed(2)}</Text></Text>
+            </View>
+          )}
+          {selectedIndicator === 'RSI' && indicatorData.rsi_value && (
+            <View>
+              <Text style={styles.rsiText}>RSI: <Text style={styles.rsiValue}>{indicatorData.rsi_value.toFixed(2)}</Text></Text>
+            </View>
+          )}
+        </>
+      ) : (
+        // If no coin is selected, display an error message
+        <View style={{marginTop: 73}}>
+        <Text style={styles.selectionMessage}>{selectionMessage}</Text>
+        </View>
+      )}
+      
+      </View>
+
+            </View>
+
+
+            <View style={styles.chartContainer}>
+              {selectedValue && <CandleStickChartComponent coin={selectedValue} />}
+            </View>
+          </>
+        );
+      
+  //  case 'Alerts':
+  //   return (
+  //     <ScrollView contentContainerStyle={{ padding: 10 }}>
+  //       {alerts.length > 0 ? (
+  //         alerts
+  //           .slice()
+  //           .reverse()
+  //           .map((alert, index) => {
+  //             const createdAt = new Date(alert.created_at);
+  //             const timeString = createdAt.toLocaleTimeString('en-US', {
+  //               hour: '2-digit',
+  //               minute: '2-digit',
+  //               second: '2-digit',
+  //             });
   
-              return (
-                <View style={styles.alertContainer} key={index}>
-                  <Text style={styles.alertMessage}>{alert.message}</Text>
-                  <Text>Coin: {alert.symbol}</Text>
-                  <Text>RSI Value: {alert.rsi_value}</Text>
-                  <Text>Time Frame: {alert.timeFrame}</Text>
-                  <Text>Username: {alert.username}</Text>
-                  <Text>Email: {alert.email}</Text>
-                  <Text>Time: {timeString}</Text>
-                </View>
-              );
-            })
-        ) : (
-          // <Text>No alerts found</Text>
-          <Text style={styles.selectionMessage}>{alertError}</Text>
-        )}
-      </ScrollView>
-    );
+  //             return (
+  //               <View style={styles.alertContainer} key={index}>
+  //                 <Text style={styles.alertMessage}>{alert.message}</Text>
+  //                 <Text>Coin: {alert.symbol}</Text>
+  //                 <Text>RSI Value: {alert.rsi_value}</Text>
+  //                 <Text>Time Frame: {alert.timeFrame}</Text>
+  //                 <Text>Username: {alert.username}</Text>
+  //                 <Text>Email: {alert.email}</Text>
+  //                 <Text>Time: {timeString}</Text>
+  //               </View>
+  //             );
+  //           })
+  //       ) : (
+  //         // <Text>No alerts found</Text>
+  //         <Text style={styles.selectionMessage}>{alertError}</Text>
+  //       )}
+  //     </ScrollView>
+  //   );
  
-  default:
-    return null;
+  // default:
+  //   return null;
 
     }
   };
 
   return (
-    <LinearGradient
-      colors={['black', '#010b30']}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 0, y: 1 }} // Changed to vertical gradient
-      style={styles.gradientBackground}>
 
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Crypto Analyzer</Text>
+        <Image source={require('../assets/hello_Logo.png')} style={styles.LogoStyling} />
+          <Text style={styles.title}>rypto Analyzer</Text>
           <TouchableOpacity style={styles.userIcon} onPress={() => navigation.navigate('Profile')}>
-            <Image source={require('../assets/set.png')} style={styles.userIconImage} />
+            <Image source={require('../assets/settings4.png')} style={styles.settingsIcon} />
           </TouchableOpacity>
         </View>
+
         <View style={styles.tabContainer}>
+
+        <View style={styles.tabsView}>
+          <TouchableOpacity style={styles.tab} onPress={() => setSelectedTab('CryptoSignals')}>
+          <View style={[styles.tabView, selectedTab === 'CryptoSignals' && styles.activeTab]}>
+            <Text style={[styles.tabText, selectedTab === 'CryptoSignals' && styles.selectedTabText]}>
+              Crypto Signals
+            </Text>
+            </View>
+          </TouchableOpacity>
+          </View>
+
+        <View style={styles.tabsView}>
+          <TouchableOpacity style={styles.tab} onPress={() => setSelectedTab('PricePrediction')}>
+          <View style={[styles.tabView, selectedTab === 'PricePrediction' && styles.activeTab]}>
+            <Text style={[styles.tabText, selectedTab === 'PricePrediction' && styles.selectedTabText]}>
+              Price Prediction
+            </Text>
+            </View>
+          </TouchableOpacity>
+          </View>
+
+          <View style={styles.tabsView}>
           <TouchableOpacity style={styles.tab} onPress={() => setSelectedTab('LivePrices')}>
+          <View style={[styles.tabView, selectedTab === 'LivePrices' && styles.activeTab]}>
             <Text style={[styles.tabText, selectedTab === 'LivePrices' && styles.selectedTabText]}>
               Live Prices
             </Text>
+            </View>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.tab} onPress={() => setSelectedTab('Indicators')}>
-            <Text style={[styles.tabText, selectedTab === 'Indicators' && styles.selectedTabText]}>
-              Indicators
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.tab} onPress={() => setSelectedTab('BotScalpingSignals')}>
-            <Text style={[styles.tabText, selectedTab === 'BotScalpingSignals' && styles.selectedTabText]}>
-              Bot Scalping Signals
-            </Text>
-          </TouchableOpacity>
+          </View>
+
+          
+          {/* <View style={styles.tabsView}>
           <TouchableOpacity style={styles.tab} onPress={() => setSelectedTab('Alerts')}>
+          <View style={[styles.tabView, selectedTab === 'Alerts' && styles.activeTab]}>
             <Text style={[styles.tabText, selectedTab === 'Alerts' && styles.selectedTabText]}>
               Alerts
             </Text>
+            </View>
           </TouchableOpacity>
+          </View> */}
         </View>
+
         <View style={styles.horizontalLine} />
         <View style={styles.contentContainer}>
           {renderContent ? renderContent() : <Text>No Content Available</Text>}
         </View>
       </View>
-    </LinearGradient>
 
   );
 };  
@@ -449,46 +588,169 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
+    backgroundColor:'black',
+  },
+  radioLabel: {
+    color: 'white',
+    fontSize: 16,
+  },
+  radioItem: {
+    flexDirection: 'row-reverse',
+  },
+  scrollViewContainer : {
+    flex: 1,
+    padding: 20,
+  },
+  StartTradeText:{
+    color:'#b29705',
+    fontSize: 30,
+    fontWeight:'bold',
+    marginTop:-25,
+    marginBottom:20,
+    textAlign:'center'
+  },
+  buttonView:{
+    marginTop: 20,
+    width: 300,
+    alignItems:'center'
+  },
+  startButton: {
+    marginTop: 20,
+    backgroundColor: '#b29705',
+    borderRadius: 50,
+    height: 45,
+    width: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  startButtonText: {
+    color: '#fff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  CryptoInputContainer:{
+    height:100
+  },
+  TimeframeInputContainer:{
+    height:200
+  },
+  tabView:{
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 40,
   },
   header: {
     marginLeft: -8,
-    marginTop: 0,
+    marginTop: -10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
   },
   title: {
-    color: 'white',
+    color: '#b29705',
     fontSize: 24,
     fontWeight: 'bold',
-    marginTop: '20',
+    marginTop: 20,
+    marginLeft: -135
   },
-  userIcon: {},
-  userIconImage: {
+  settingsIcon: {
     marginTop: 20,
     borderRadius: 50,
     width: 35,
     height: 35,
   },
+  LogoStyling: {
+    marginTop: 20,
+    borderRadius: 50,
+    width: 50,
+    height: 50,
+  },
   tabContainer: {
+    height:29,
+    display:'flex',
     flexDirection: 'row',
+    justifyContent:'center',
     marginBottom: 20,
-    marginTop: 25,
-    marginLeft: -5,
-    marginRight: -5,
-    justifyContent: 'space-between',
+    marginLeft: -12,
+    marginRight: -12,
+    alignItems:'center',
+    backgroundColor:'white',
+    borderRadius:40
+  },
+  tabsView:{
+    height:'100%',
+    width:'33.5%',
+    display:'flex',
+    justifyContent:'center',
+    alignItems:'center',
   },
   tab: {
-    marginRight: 10,
+    height:'100%',
+    width:'100%',
+    borderRadius:40,
+    display:'flex',
+    justifyContent:'center',
+    alignItems:'center',
+    textAlign:'center',
   },
   tabText: {
-    color: 'white',
+    color: 'black',
     fontSize: 12,
+    textAlign:'center'
+
   },
   selectedTabText: {
     fontWeight: 'bold',
-    color: '#63B8CE',
+    color: 'white',
+    width:'100%',
+    borderRadius:40,
+  },
+  tabView: {
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 40,
+  },
+  activeTab: {
+    backgroundColor: '#b29705',
+    borderRadius:40,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  labelStyling:{
+    color:'white',
+    marginBottom: 10,
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  coinsDropDownInCryptoSignals:{
+    height: 34,
+    width: 200,
+    backgroundColor: 'white',
+    alignContent: 'center',
+    justifyContent: 'center',
+    borderRadius: 10,
+    borderWidth:0.5,
+    
+  },
+  InputContainerStyling: {
+    alignItems:'center', 
+    borderRadius:0.5, 
+    borderWidth:3, 
+    borderColor: 'gray',
+    width: 280,
+    borderRadius: 10,
+  },
+  textInputinputStyling:{
+    height: 40,
+    width: 280,
+    borderRadius: 10,
+    borderWidth:0,
+    paddingLeft:10,
   },
   horizontalLine: {
     borderBottomColor: 'gray',
@@ -508,7 +770,7 @@ const styles = StyleSheet.create({
   pricesTextContainer: {
     marginTop: -4,
     marginBottom: 20,
-    width: '120%',
+    // width: '120%',
     height: 57,
     borderRadius: 10,
   },
@@ -531,27 +793,29 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     fontStyle:'italic',
   },
+  coinAndIndicatorsSelectionContainer: {
+    width:380,
+    flexDirection: 'row',
+    justifyContent:'space-between',
+  },
   coinsDropDown: {
-    height: 43,
-    width: 200,
+    height: 40,
+    width: 180,
     backgroundColor: 'white',
-    borderColor: '#304b52',
-    alignContent: 'center',
     justifyContent: 'center',
-    borderRadius: 50,
-    borderWidth: 1,
+    borderRadius: 10,
   },
   indicatorsDropDown: {
-    height: 46,
-    width: 250,
+    height: 40,
+    width: 180,
     backgroundColor: 'white',
-    borderColor: '#304b52',
-    alignContent: 'center',
     justifyContent: 'center',
-    borderRadius: 50,
-    borderWidth: 1,
-    marginTop: -19,
-    marginBottom: 15,
+    borderRadius: 10,
+  },
+  coinAndIndicatorsDisplayContainer:{
+    width:380,
+    flexDirection: 'row',
+    justifyContent:'space-between',
   },
   chartContainer: {
     marginTop: '10',
@@ -559,33 +823,21 @@ const styles = StyleSheet.create({
     width: '121%',
   },
   bbandText: {
-    fontSize: 17,
+    fontSize: 14,
     color: 'white'
   },
   bbandValue: {
     color: '#00FF00',
+    fontWeight:'bold'
   },
   rsiText: {
-    fontSize: 17,
+    fontSize: 14,
     color:'white'
   },
   rsiValue: {
     fontSize: 17,
-    color:'#00FF00'
-  },
-  startButton: {
-    marginTop: 140,
-    borderRadius: 20,
-    backgroundColor: '#8f1294',
-    height: 50,
-    width: 210,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  startButtonText: {
-    color: 'white',
-    fontWeight: '600',
-    fontSize: 20,
+    color:'#00FF00',
+    fontWeight:'bold'
   },
   selectedTimeTextStyle:{
     fontSize:18,
@@ -641,13 +893,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight:'bold',
     color:'#2e2d2b'
-  },
-  gradientBackground: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-
-  
+  }, 
 });
 
 export default HomeScreen;

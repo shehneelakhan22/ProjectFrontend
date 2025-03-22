@@ -62,11 +62,11 @@ const SignUpScreen = ({ navigation }) => {
   };
 
   return (
-    <LinearGradient
-          // Define the gradient colors (top to bottom)
-          colors={['#000000', '#010b30', '#000000']} 
-          style={styles.backgroundGradient} // Apply gradient to full screen
-        >
+    // <LinearGradient
+    //       // Define the gradient colors (top to bottom)
+    //       colors={['#000000', '#010b30', '#000000']} 
+    //       style={styles.backgroundGradient} // Apply gradient to full screen
+    //     >
     <View style={styles.container}>
       <View style={styles.textInputContainer}>
         <TextInput
@@ -110,14 +110,14 @@ const SignUpScreen = ({ navigation }) => {
         <Text style={styles.signUpButtonText}>Sign Up</Text>
       </TouchableOpacity>
     </View>
-    </LinearGradient>
+    // </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'transparent',
+    backgroundColor: 'black',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -143,20 +143,20 @@ const styles = StyleSheet.create({
   },
   myButton: {
     top: 20,
-    backgroundColor: '#2196F3',
+    backgroundColor: '#b29705',
     height: 40,
-    width: 150,
+    width: 250,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius: 50,
   },
   signUpButtonText: {
     color: '#fff',
     fontSize: 16,
   },
   textInputStyle: {
-    height: 40,
-    width: 200,
+    height: 45,
+    width: 250,
     backgroundColor: '#fff',
     borderRadius: 10,
     borderWidth: 0,

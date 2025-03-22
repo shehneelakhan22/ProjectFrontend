@@ -6,7 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { BACKEND_API_URL } from './configUrl';
 import { MaterialIcons } from '@expo/vector-icons';
 
-const ProfileScreen = () => {
+const ProfileScreen = ( route ) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const navigation = useNavigation();
@@ -73,10 +73,10 @@ const ProfileScreen = () => {
   };
 
   return (
-    <LinearGradient
-          colors={['#000000', '#010b30', '#000000']} 
-          style={styles.backgroundGradient} // Apply gradient to full screen
-        >
+    // <LinearGradient
+    //       colors={['#000000', '#010b30', '#000000']} 
+    //       style={styles.backgroundGradient} // Apply gradient to full screen
+    //     >
       <View style={styles.container}>
         <View style={styles.header}>
           <Text style={styles.title}>Settings</Text>
@@ -187,7 +187,7 @@ const ProfileScreen = () => {
           </View>
         </Modal>
       </View>
-      </LinearGradient>
+      //  </LinearGradient> 
   );
   
 };
@@ -195,11 +195,13 @@ const ProfileScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: 'black',
     padding: 20,
     alignItems: 'center',
   },
   container: {
     flex: 1,
+    backgroundColor: 'black',
     padding: 20,
     alignItems: 'center',
   },
@@ -221,7 +223,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: 'white',
+    color: '#b29705',
     marginBottom: 20
   },
   myAccountView: {
@@ -229,10 +231,10 @@ const styles = StyleSheet.create({
   },
   myAccount: {
     marginBottom: -10,
-    marginLeft: -146,
+    marginLeft: -162,
     fontSize: 23,
     fontWeight: 'bold',
-    color: 'white'
+    color: '#b29705'
   },
   profileContainer: {
     backgroundColor:'white',
@@ -314,7 +316,7 @@ const styles = StyleSheet.create({
   logOutButtonView: {
     marginTop: 10,
     borderRadius: 10,
-    backgroundColor: '#266FDC',
+    backgroundColor: '#b29705',
     height: 40,
     width: 130,
     alignItems: 'center',
@@ -351,7 +353,7 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     padding: 10,
-    borderRadius: 5,
+    borderRadius: 5
   },
   cancelButton: {
     backgroundColor: '#858784',
@@ -360,7 +362,7 @@ const styles = StyleSheet.create({
   },
   logoutButton: {
     // backgroundColor: '#EC3232',
-    backgroundColor:'#266FDC',
+    backgroundColor:'#b29705',
     borderRadius:10
   },
   deleteButtonFinal:{

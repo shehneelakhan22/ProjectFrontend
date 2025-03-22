@@ -1,16 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
-const ChangePasswordScreen = ({ navigation }) => {
+const ChangePasswordScreen = ({ navigation, route }) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [error, setError] = useState('');
+  const [storedPassword, setStoredPassword] = useState('');
 
-  const storedPassword = "user123";
+  useEffect(() => {
+    if (route.params?.password && route.params?.email) {
+      setStoredPassword(route.params.password);
+      setUserEmail(route.params.email);
+    }
+  }, [route.params]);
 
   const handleNext = () => {
     if (!currentPassword) {
-      setError('Enter password'); // Error for empty input
+      setError('Enter your current password.'); // Error for empty input
     } else if (currentPassword === storedPassword) {
       setError(''); // Clear previous errors
       navigation.navigate('ChangePassword', { currentPassword });
@@ -21,10 +27,10 @@ const ChangePasswordScreen = ({ navigation }) => {
   
 
   return (
-    <LinearGradient
-          colors={['#000000', '#010b30', '#000000']} 
-          style={styles.backgroundGradient} // Apply gradient to full screen
-        >
+    // <LinearGradient
+    //       colors={['#000000', '#010b30', '#000000']} 
+    //       style={styles.backgroundGradient} // Apply gradient to full screen
+    //     >
 
     <View style={styles.container}>
       <Text style={styles.heading}>Password</Text>
@@ -54,7 +60,7 @@ const ChangePasswordScreen = ({ navigation }) => {
       </TouchableOpacity>
 
     </View>
-     </LinearGradient>
+    //  </LinearGradient>
   );
 };
 
@@ -62,6 +68,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
+    backgroundColor:'black',
     justifyContent: 'center',
   },
   backgroundGradient: {
@@ -97,7 +104,7 @@ const styles = StyleSheet.create({
   },
   myButton: {
     marginTop: 30,
-    backgroundColor: '#2196F3',
+    backgroundColor: '#b29705',
     height: 40,
     width: 150,
     alignItems: 'center',

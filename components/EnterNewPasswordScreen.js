@@ -19,10 +19,10 @@ const EnterNewPasswordScreen = ({ route, navigation }) => {
   };
 
   return (
-    <LinearGradient
-              colors={['#000000', '#010b30', '#000000']} 
-              style={styles.backgroundGradient} // Apply gradient to full screen
-            >
+    // <LinearGradient
+    //           colors={['#000000', '#010b30', '#000000']} 
+    //           style={styles.backgroundGradient} // Apply gradient to full screen
+    //         >
     <View style={styles.container}>
       <Text style={styles.heading}>New Password</Text>
       <View style={styles.directionTextView}>
@@ -54,14 +54,14 @@ const EnterNewPasswordScreen = ({ route, navigation }) => {
       </TouchableOpacity>
       
     </View>
-    </LinearGradient>
+    // </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    // backgroundColor:'#0B1631',
+    backgroundColor:'black',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -106,7 +106,7 @@ textInputContainer: {
   },
   myButton: {
     marginTop: 20,
-    backgroundColor: '#2196F3',
+    backgroundColor: '#b29705',
     height: 40,
     width: 150,
     alignItems: 'center',

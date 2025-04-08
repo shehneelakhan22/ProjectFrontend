@@ -1,66 +1,128 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
-const ChangePasswordScreen = ({ navigation, route }) => {
+const ChangePasswordScreen = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
-  const [storedPassword, setStoredPassword] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const [focusedInput, setFocusedInput] = useState(null);
+  const [showPassword, setShowPassword] = useState({
+    currentPassword: false,
+    newPassword: false,
+    confirmPassword: false,
+  });
 
-  useEffect(() => {
-    if (route.params?.password && route.params?.email) {
-      setStoredPassword(route.params.password);
-      setUserEmail(route.params.email);
-    }
-  }, [route.params]);
+  // const handleSave = () => {
+  //   if (!currentPassword && !newPassword && !confirmPassword) {
+  //     setError('Fill all the fields');
+  //   } else if (newPassword === currentPassword) {
+  //     setError('New password cannot be the same as the current password');
+  //   } else if (newPassword !== confirmPassword) {
+  //     setError('New password and confirm password do not match');
+  //   } else {
+  //     setError('');
+  //     setSuccessMessage('Password Changed Successfully');
+  //     setTimeout(() => {
+  //       setSuccessMessage('');
+  //       navigation.navigate('Profile');
+  //     }, 1000);
+  //   }
+  // };
 
-  const handleNext = () => {
-    if (!currentPassword) {
-      setError('Enter your current password.'); // Error for empty input
-    } else if (currentPassword === storedPassword) {
-      setError(''); // Clear previous errors
-      navigation.navigate('ChangePassword', { currentPassword });
+  const handleSave = async () => {
+    if (!currentPassword || !newPassword || !confirmPassword) {
+        setError('Fill all the fields');
+    } else if (newPassword === currentPassword) {
+        setError('New password cannot be the same as the current password');
+    } else if (newPassword !== confirmPassword) {
+        setError('New password and confirm password do not match');
     } else {
-      setError('Incorrect password. Please try again.');
+        try {
+            const response = await fetch('http://127.0.0.1:5000/change_password', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    current_password: currentPassword,
+                    new_password: newPassword,
+                }),
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                setError('');
+                setSuccessMessage('Password Changed Successfully');
+                setTimeout(() => {
+                    setSuccessMessage('');
+                    navigation.navigate('Profile');
+                }, 1000);
+            } else {
+                setError(result.error || 'Failed to change password');
+            }
+        } catch (error) {
+            setError('Network error. Please try again.');
+        }
     }
+};
+
+
+  const getInputStyle = (value) => ({
+    color: value ? 'white' : 'gray',
+    fontStyle: value ? 'normal' : 'italic',
+  });
+
+  const toggleShowPassword = (field) => {
+    setShowPassword((prev) => ({
+      ...prev,
+      [field]: !prev[field],
+    }));
   };
-  
 
   return (
-    // <LinearGradient
-    //       colors={['#000000', '#010b30', '#000000']} 
-    //       style={styles.backgroundGradient} // Apply gradient to full screen
-    //     >
-
     <View style={styles.container}>
+      {successMessage ? (
+        <View style={styles.successBox}>
+          <Text style={styles.successText}>{successMessage}</Text>
+        </View>
+      ) : null}
       <Text style={styles.heading}>Password</Text>
-      <View style={styles.directionTextView}>
-      <Text style={styles.directionText}>To set a new password, please enter your current password first.</Text>
-      </View>
 
       <View style={styles.textInputContainer}>
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-    <View style={{justifyContent:'flex-start'}}>
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
-
-      <TextInput
-        style={styles.input}
-        placeholder="Current Password"
-        value={currentPassword}
-        onChangeText={setCurrentPassword}
-        secureTextEntry
-      />
+        {[{ label: 'Current Password', placeholder: 'Enter Current Password', value: currentPassword, setValue: setCurrentPassword, field: 'currentPassword' }, 
+          { label: 'New Password', placeholder: 'Enter New Password', value: newPassword, setValue: setNewPassword, field: 'newPassword' }, 
+          { label: 'Confirm New Password', placeholder: 'Confirm Password', value: confirmPassword, setValue: setConfirmPassword, field: 'confirmPassword' }].map(({ label, placeholder, value, setValue, field }) => (
+          <View key={label} style={styles.passwordContainer}>
+            <Text style={styles.label}>{label}</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={[styles.input, getInputStyle(value), { borderColor: focusedInput === label ? '#b29705' : 'gray' }]}
+                placeholder={placeholder}
+                placeholderTextColor="gray"
+                value={value}
+                onChangeText={setValue}
+                secureTextEntry={!showPassword[field]}
+                onFocus={() => setFocusedInput(label)}
+                onBlur={() => setFocusedInput(null)}
+              />
+              <TouchableOpacity style={styles.eyeIcon} onPress={() => toggleShowPassword(field)}>
+                <Ionicons name={showPassword[field] ? 'eye-off' : 'eye'} size={24} color="gray" />
+              </TouchableOpacity>
+            </View>
+          </View>
+        ))}
       </View>
-      </View>
 
-      <TouchableOpacity
-        style={styles.myButton}
-        onPress={handleNext}>
-        <Text style={styles.NextButtonText}>Next</Text>
+      <TouchableOpacity style={styles.myButton} onPress={handleSave}>
+        <Text style={styles.NextButtonText}>Confirm</Text>
       </TouchableOpacity>
-
     </View>
-    //  </LinearGradient>
   );
 };
 
@@ -68,35 +130,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    backgroundColor:'black',
+    backgroundColor: 'black',
     justifyContent: 'center',
   },
-  backgroundGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignSelf: 'center',
-    width: '100%',
-    height: '100%',
-  },
-  heading:{
-      fontSize: 26,
-      color:'white',
-      fontWeight: 500,
-  },
-  directionTextView:{
-    width:280,
-    marginTop:10
-  },
-  directionText:{
-    color:'#fff',
-    fontSize: 12,
-    textAlign:'center'
-  },
-  textInputContainer: {
-    height:60,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginTop:30
+  heading: {
+    fontSize: 26,
+    color: '#b29705',
+    fontWeight: 'bold',
+    marginBottom: 10,
   },
   NextButtonText: {
     color: '#fff',
@@ -111,22 +152,54 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     borderRadius: 10,
   },
+  textInputContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  passwordContainer: {
+    marginBottom: 15,
+  },
+  inputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   input: {
     height: 40,
-    width: 300,
-    backgroundColor: '#fff',
+    width: 260,
+    backgroundColor: 'transparent',
     borderRadius: 8,
-    borderWidth: 0,
-    fontStyle: 'italic',
     paddingRight: 10,
     paddingLeft: 10,
+    borderWidth: 2,
+    color: 'white',
+  },
+  eyeIcon: {
+    position: 'absolute',
+    right: 10,
+  },
+  label: {
+    color: '#fff',
+    fontSize: 14,
+    marginBottom: 5,
   },
   errorText: {
     color: 'red',
     fontSize: 14,
     fontWeight: 'bold',
-    marginBottom: 5, // Space between error message and input
+    marginBottom: 5,
+  },
+  successBox: {
+    backgroundColor: '#28a745',
+    padding: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  successText: {
+    color: '#fff',
+    fontSize: 16,
   },
 });
 
 export default ChangePasswordScreen;
+

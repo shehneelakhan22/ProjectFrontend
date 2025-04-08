@@ -50,9 +50,9 @@ const styles = StyleSheet.create({
   },
   logostyle: {
     marginTop:-100,
-    marginBottom: -50,
-    height: 292,
-    width: 292,
+    marginBottom: -30,
+    height: 225,
+    width: 225,
     borderRadius: 100,
   },
   myButton: {

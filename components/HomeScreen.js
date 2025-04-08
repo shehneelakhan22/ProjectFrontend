@@ -1,153 +1,90 @@
 import React, { useState, useEffect } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, FlatList, ActivityIndicator } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
-import { Picker } from '@react-native-picker/picker';
 import { RadioButton } from 'react-native-paper';
+import { LineChart } from 'react-native-chart-kit'; // Import the charting library
+import { Dimensions } from 'react-native';
+import axios from 'axios';
 import CandleStickChartComponent from './CandleStickChartComponent';
 import { BACKEND_API_URL } from './configUrl';
 
-const HomeScreen = ({ navigation, route }) => {
+const HomeScreen = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('CryptoSignals');
   const [selectedValue, setSelectedValue] = useState(null);
   const [livePrice, setLivePrice] = useState(null);
   const [selectedIndicator, setSelectedIndicator] = useState(null);
   const [indicatorData, setIndicatorData] = useState({});
-  const [selectedTime, setSelectedTime] = useState(false);
-  const [countdown, setCountdown] = useState('00:00'); // State for countdown in HH:MM format
   const [isCoinSelected, setIsCoinSelected] = useState(false); // Track if a coin is selected
   const [selectionMessage, setSelectionMessage] = useState('');
   const [error, setError] = useState('');
-  const [alertError, setAlertError] = useState('');
-  const [alerts, setAlerts] = useState([]);
-  const [loading, setLoading] = useState(true);
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState(null);
   const [investmentAmount, setInvestmentAmount] = useState(null);
+  const [selectedCoin, setSelectedCoin] = useState('');
+  const [predictions, setPredictions] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [predictionError, setPredictionError] = useState('');
 
+
+  const getFormattedDateLabels = () => {
+    const today = new Date();
+    return predictions.map((_, i) => {
+      const date = new Date(today);
+      date.setDate(today.getDate() + i);
+      return i % 9 === 0 ? date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '';
+    });
+  };
+  
+  const fetchPredictions = async (coinSymbol) => {
+    const coin = coinSymbol?.toLowerCase();
+
+    if (!coin) {
+      setPredictionError('Please select a coin.');
+      return;
+    }
+
+    setLoading(true);
+    setPredictionError('');
+    setPredictions([]);
+
+    try {
+      const response = await axios.get(`${BACKEND_API_URL}/predict?coin=${coin}`);
+
+      if (response.data && response.data.predicted_prices) {
+        setPredictions(response.data.predicted_prices);
+        setPredictionError('');
+      } else {
+        setPredictionError('No prediction data available.');
+      }
+    } catch (err) {
+      console.error('Error fetching predictions:', err);
+      setPredictionError(err.response?.data?.error || 'Error fetching predictions.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const startBot = () => {
     if (selectedTimeframe && selectedTicker && investmentAmount) {
       console.log(`Bot started with timeframe: ${selectedTimeframe} minutes`);
       // Add logic to start the bot with the selected timeframe
     } else {
-      alert('Please select comlete all fields before starting the bot.');
+      alert('Please select all fields before starting the bot.');
     }
   };
-  
-  useEffect(() => {
-    if (selectedTime) {
-    const fetchAlerts = async () => {
-      try {
-        const response = await fetch(`${BACKEND_API_URL}/get_alerts?selectedTime=${selectedTime}&selectedValue=${selectedValue}`);
-        if (!response.ok) {
-          throw new Error('Failed to fetch alerts');
-        }
-        const data = await response.json();
-        setAlerts(data.alerts || []);
-        setLoading(false);
-      } catch (err) {
-        setError(err.message);
-        setLoading(false);
-      }
-    };
-  
-    fetchAlerts();  // Fetch alerts immediately
-
-    const intervalId = setInterval(fetchAlerts, 1000);  // Fetch alerts every second
-
-    return () => clearInterval(intervalId); // Cleanup interval on unmount
-  }
-  }, [selectedTime, selectedValue]);
-
-  
-  useEffect(() => {
-    if (selectedTime) {
-      const handleAlertsData = async () => {
-        try {
-          const response = await fetch(`${BACKEND_API_URL}/generate_alerts`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ selectedTime, selectedValue }),
-          });
-  
-          if (!response.ok) {
-            throw new Error('Failed to generate alert data');
-          }
-        } catch (error) {
-          console.error('Error sending alert data:', error);
-        }
-      };
-  
-      handleAlertsData();
-
-      const timeInSeconds = parseInt(selectedTime, 10) * 60; // Convert selectedTime (minutes) to seconds
-      let remainingTime = timeInSeconds;
-  
-      const formatTime = (seconds) => {
-        const minutes = Math.floor(seconds / 60);
-        const secs = seconds % 60;
-        return `${minutes.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-      };
-  
-      setCountdown(formatTime(remainingTime));
-  
-      const countdownInterval = setInterval(() => {
-        remainingTime -= 1;
-        if (remainingTime <= 0) {
-          clearInterval(countdownInterval);
-          setCountdown('00:00');
-          setSelectedTime(null); // Reset the selected time
-          navigation.navigate('Home', { resetBotScalping: true });
-        } else {
-          setCountdown(formatTime(remainingTime));
-        }
-      }, 1000);
-  
-      return () => clearInterval(countdownInterval);
-    }
-  }, [selectedTime, selectedValue, navigation]);
   
   useEffect(() => {
     if (!isCoinSelected) {
       setSelectionMessage(
         <Text>
-      Please select a coin from the <Text style={{ fontWeight: 'bold' }}>Live Prices</Text> tab before starting.
+      Please select a coin.
     </Text>
       );
     } else {
       setSelectionMessage('');
     }
   }, [isCoinSelected]);
-
-  useEffect(() => {
-    if (!selectedTime) {
-      setAlertError(
-        <Text>
-      Please select timeframe from the <Text style={{ fontWeight: 'bold' }}>Bot Scalping Signals</Text> tab to see alerts.
-    </Text>
-      );
-    } else {
-      setAlertError(''); 
-    }
-  }, [isCoinSelected]);
   
-
-  useFocusEffect(
-    React.useCallback(() => {
-      if (route.params?.fromTimeScreen) {
-        setSelectedTab('BotScalpingSignals');
-        setSelectedTime(route.params?.selectedTime || null); 
-      }
-      if (route.params?.resetBotScalping) {
-        setSelectedTab('BotScalpingSignals');
-        setSelectedTime(null); // Reset the selected time
-      }
-    }, [route.params?.fromTimeScreen, route.params?.resetBotScalping])
-  );
   
   useEffect(() => {
     let priceInterval;
@@ -233,8 +170,6 @@ const HomeScreen = ({ navigation, route }) => {
                 items={[
                   { label: 'Bitcoin (BTC)', value: 'BTC' },
                   { label: 'Ethereum (ETH)', value: 'ETH' },
-                  { label: 'Cardano (ADA)', value: 'ADA'},
-                  { label: 'Solana (SOL)', value: 'SOL'},
                   { label: 'Binance Coin (BNB)', value: 'BNB'},
                 ]}
                 style={pickerSelectStyles.inputAndroid}
@@ -249,154 +184,179 @@ const HomeScreen = ({ navigation, route }) => {
 
        <View style={styles.TimeframeInputContainer}>    
         <Text style={styles.labelStyling}>Select Timeframe:</Text>
-      <View style={{alignItems:'center'}}>
-      <RadioButton.Group
-                onValueChange={value => {setSelectedTimeframe(value);
+         <View style={{alignItems:'center'}}>
+           <RadioButton.Group
+                onValueChange={value => {
+                  setSelectedTimeframe(value);
                   setError(''); // Clear error when an option is selected
                 }}
                 value={selectedTimeframe}
               >
+                <View style={{flexDirection: 'row', justifyContent:'space-evenly', width:'100%'}}>
+                <View style={styles.radioItemContainer}>
                 <RadioButton.Item
-                  label="1 minute"
                   value="1m"
-                  labelStyle={styles.radioLabel}
-                  mode="android"
-                  style={styles.radioItem}
-                  // position="leading"
+                  status={selectedTimeframe === '1m' ? 'checked' : 'unchecked'}
+                  color="#b29705"
                 />
+                <Text style={styles.radioLabel}>1 minute</Text>
+                </View>
+
+                <View style={styles.radioItemContainer}>
                 <RadioButton.Item
-                  label="5 minutes"
                   value="5m"
-                  labelStyle={styles.radioLabel}
-                  mode="android"
-                  style={styles.radioItem}
-                  // position="leading"
+                  status={selectedTimeframe === '5m' ? 'checked' : 'unchecked'}
+                  color="#b29705"
                 />
+                <Text style={styles.radioLabel}>5 minutes</Text>
+                </View>
+
+                <View style={styles.radioItemContainer}>
                 <RadioButton.Item
-                  label="15 minutes"
                   value="15m"
-                  labelStyle={styles.radioLabel}
-                  mode="android"
-                  style={styles.radioItem}
-                  // position="leading"
+                  status={selectedTimeframe === '15m' ? 'checked' : 'unchecked'}
+                  color="#b29705"
                 />
+                <Text style={styles.radioLabel}>15 minute</Text>
+                </View>
+                </View>
               </RadioButton.Group>
               </View>
-        </View>
+               </View>
+               
+         <View style={styles.inputContainer}>
+            <Text style={styles.labelStyling}>Add Amount:</Text>
+            <View style={styles.InputContainerStyling}>
+              <TextInput 
+              style={[ 
+                styles.textInputinputStyling,
+                { color: investmentAmount === '0$' ? 'gray' : 'white' }, // Change text color based on input
+                ]}
+                keyboardType="numeric"
+                placeholder="0$"
+                placeholderTextColor="gray"
+                value={investmentAmount}
+                onChangeText={(text) => {
+                  // Remove non-numeric characters except the dollar sign
+                let numericValue = text.replace(/[^0-9]/g, '');
 
-        <View style={styles.inputContainer}>
-  <Text style={styles.labelStyling}>Add Amount:</Text>
-  <View style={styles.InputContainerStyling}>
-  <TextInput
-  style={[
-    styles.textInputinputStyling,
-    { color: investmentAmount === '0$' ? 'gray' : 'white' }, // Change text color based on input
-  ]}
-    keyboardType="numeric"
-    placeholder="0$"
-    placeholderTextColor="gray"
-    value={investmentAmount}
-    onChangeText={(text) => {
-      // Remove non-numeric characters except the dollar sign
-      let numericValue = text.replace(/[^0-9]/g, '');
+                 // Ensure 0 is removed when user starts typing
+                 if (numericValue.startsWith('0') && numericValue.length > 1) {
+                   numericValue = numericValue.slice(1);
+                  }
 
-      // Ensure 0 is removed when user starts typing
-      if (numericValue.startsWith('0') && numericValue.length > 1) {
-        numericValue = numericValue.slice(1);
-      }
-
-      // Update state with formatted value
-      setInvestmentAmount(numericValue ? `${numericValue}$` : '0$');
-    }}
-  />
-  </View>
-</View>
-
-        
-        <View style={styles.buttonView}>
-        <TouchableOpacity style={styles.startButton} onPress={startBot}>
-
-          <Text style={styles.startButtonText}>Start</Text>
-        </TouchableOpacity>
-        </View>
-              
-      </ScrollView>
+                // Update state with formatted value
+                setInvestmentAmount(numericValue ? `${numericValue}$` : '0$');
+              }}
+              />
+              </View>
+               </View>
+               <View style={styles.buttonView}>
+                <TouchableOpacity style={styles.startButton} onPress={startBot}>
+                  <Text style={styles.startButtonText}>Start</Text>
+                  </TouchableOpacity>
+                   </View>
+                   </ScrollView>
           </>
         );
+        
+        case 'PricePrediction':
+          return (
+            <View style={styles.predictionContainer}>
+              <Text style={styles.titleText}>Crypto Price Prediction</Text>
+              <View style={styles.dropDownForPricePrediction}>
+                <RNPickerSelect
+                  onValueChange={(value) => {
+                    setSelectedCoin(value);
+                    fetchPredictions(value);
+                  }}
+                  items={[
+                    { label: 'BTC/USDT', value: 'bitcoin' },
+                    { label: 'ETH/USDT', value: 'ethereum' },
+                    { label: 'BNB/USDT', value: 'binancecoin' },
+                  ]}
+                  style={{
+                      color: 'black',
+                      paddingHorizontal: 10
+                  }}
+                  placeholder={{ label: 'Select a coin', value: null }}
+                />
+              </View>
+    
+              {loading && <ActivityIndicator size="large" style={styles.loading} />}
+    
+              {predictionError ? (
+                <Text style={styles.error}>{predictionError}</Text>
+              ) : predictions.length > 0 ? (
+                <View style={styles.chartContainer}>
+                 <LineChart
+                 data={{
+                  // labels: predictions.map((_, i) => (i % 9 === 0 ? `Day ${i + 1}` : '')),
+                  labels: getFormattedDateLabels(),
 
-      case 'PricePrediction':
-      return (
-      <>
-       {/* {selectedValue ? (
-        <>
-          <View style={styles.pricesTextContainer}>
-            {livePrice !== null && (
-              <Text style={styles.displayCurrentPrice}>
-                <Text style={{ color: 'white', fontStyle: 'italic', fontWeight: 'bold' }}>
-                  {selectedValue}/USDT: </Text>{livePrice.toFixed(2)}
-                <Text style={styles.usdStyle}>USDT</Text>
-              </Text>
-            )}
-          </View>
-          <View style={styles.indicatorsDropDown}>
-            <RNPickerSelect
-              onValueChange={(value) => setSelectedIndicator(value)}
-              items={[
-                { label: 'Bollinger Bands', value: 'BollingerBands' },
-                { label: 'Relative Strength Index', value: 'RSI' },
-              ]}
-              style={pickerSelectStyles.inputAndroid}
-              placeholder={{
-                label: 'Select an indicator...',
-                value: null,
-              }}
-            />
-          </View>
-          {selectedIndicator === 'BollingerBands' && indicatorData.upper_band && (
-            <View>
-              <Text style={styles.bbandText}>Upper Band: <Text style={styles.bbandValue}>{indicatorData.upper_band.toFixed(2)}</Text></Text>
-              <Text style={styles.bbandText}>Middle Band: <Text style={styles.bbandValue}>{indicatorData.middle_band.toFixed(2)}</Text></Text>
-              <Text style={styles.bbandText}>Lower Band: <Text style={styles.bbandValue}>{indicatorData.lower_band.toFixed(2)}</Text></Text>
+                  datasets: [
+                    {
+                      data: predictions, // Predicted price values
+                      strokeWidth: 2, // Line thickness
+                      color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Line color is black
+                      withDots: false,  // Ensures no dots are shown
+                      },
+                    ],
+                  }}
+                  width={Dimensions.get('window').width - 10} // Adjust width based on screen
+                  height={350} // Set the height of the chart
+                  chartConfig={{
+                    backgroundColor: '#FFFFFF', // White background for the chart
+                    backgroundGradientFrom: '#FFFFFF', // Keep background solid white
+                    backgroundGradientTo: '#FFFFFF',
+                    decimalPlaces: 2, // Show two decimal places
+                    color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Axis and grid line color (black)
+                    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Label color (black) for both x and y axes
+                    style: {
+                      borderRadius: 16,
+                    },
+                    propsForDots: {
+                      r: '0', // This will remove dots from the chart
+                    },
+                  }}
+                  style={{ marginVertical: 8 }}
+                  />
+
+                </View>
+              ) : (
+                <FlatList
+                  data={predictions}
+                  keyExtractor={(item, index) => index.toString()}
+                  renderItem={({ item, index }) => (
+                    <Text style={styles.prediction}>Day {index + 1}: ${item}</Text>
+                  )}
+                />
+              )}
             </View>
-          )}
-          {selectedIndicator === 'RSI' && indicatorData.rsi_value && (
-            <View>
-              <Text style={styles.rsiText}>RSI Value: <Text style={styles.rsiValue}>{indicatorData.rsi_value.toFixed(2)}</Text></Text>
-            </View>
-          )}
-        </>
-      ) : (
-        // If no coin is selected, display an error message
-        <View style={{marginTop: 73}}>
-        <Text style={styles.selectionMessage}>{selectionMessage}</Text>
+          );
+
+  case 'LivePrices':
+  return (
+    <>
+      <View style={styles.coinAndIndicatorsSelectionContainer}>
+        <View style={styles.coinsDropDown}>
+          <RNPickerSelect
+            onValueChange={(value) => setSelectedValue(value)}
+            items={[
+              { label: 'BTC/USDT', value: 'BTC' },
+              { label: 'ETH/USDT', value: 'ETH' },
+              { label: 'BNB/USDT', value: 'BNB' },
+            ]}
+            style={pickerSelectStyles.inputAndroid}
+            placeholder={{
+              label: 'Select a coin',
+              value: null,
+            }}
+          />
         </View>
-      )} */}
-      <Text style={{color:'white'}}>Price Prediction</Text>
-    </>
-  );
 
-
-      case 'LivePrices':
-        return (
-          <>
-          <View style={styles.coinAndIndicatorsSelectionContainer}>
-            <View style={styles.coinsDropDown}>
-              <RNPickerSelect
-                onValueChange={(value) => setSelectedValue(value)}
-                items={[
-                  { label: 'BTC/USDT', value: 'BTC' },
-                  { label: 'ETH/USDT', value: 'ETH' },
-                  { label: 'BNB/USDT', value: 'BNB' },
-                ]}
-                style={pickerSelectStyles.inputAndroid}
-                placeholder={{
-                  label: 'Select a coin',
-                  value: null,
-                }}
-              />
-            </View>
-            
-       <View style={styles.indicatorsDropDown}>
+        {selectedValue && (
+          <View style={styles.indicatorsDropDown}>
             <RNPickerSelect
               onValueChange={(value) => setSelectedIndicator(value)}
               items={[
@@ -410,102 +370,63 @@ const HomeScreen = ({ navigation, route }) => {
                 color: 'gray',
               }}
             />
-          </View>   
-            </View> 
-
-            <View style={styles.coinAndIndicatorsDisplayContainer}>
-
-            <View style={styles.pricesTextContainer}>
-            {livePrice !== null && (
-                  <>
-              <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold', marginTop: 10 }}>
-                {/*Selected Coin: */}
-                <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold' }}> {selectedValue}/USDT</Text>
-              </Text>
-              <View style={{ flexDirection: 'row' }}>
-                
-                    <Text style={styles.selectedCurrency}>
-                      {livePrice.toFixed(2)}<Text style={styles.usdStyle}>USDT</Text>
-                    </Text> 
-              </View>
-              </>
-            )}
-            
-            </View>
-
-            <View style={{ marginTop:14}}>
-            {selectedValue ? (
-        <>
-          {selectedIndicator === 'BollingerBands' && indicatorData.upper_band && (
-            <View style={{alignItems:'center'}}>
-              <Text style={styles.bbandText}>Upper Band: <Text style={styles.bbandValue}>{indicatorData.upper_band.toFixed(2)}</Text></Text>
-              <Text style={styles.bbandText}>Middle Band: <Text style={styles.bbandValue}>{indicatorData.middle_band.toFixed(2)}</Text></Text>
-              <Text style={styles.bbandText}>Lower Band: <Text style={styles.bbandValue}>{indicatorData.lower_band.toFixed(2)}</Text></Text>
-            </View>
-          )}
-          {selectedIndicator === 'RSI' && indicatorData.rsi_value && (
-            <View>
-              <Text style={styles.rsiText}>RSI: <Text style={styles.rsiValue}>{indicatorData.rsi_value.toFixed(2)}</Text></Text>
-            </View>
-          )}
-        </>
-      ) : (
-        // If no coin is selected, display an error message
-        <View style={{marginTop: 73}}>
-        <Text style={styles.selectionMessage}>{selectionMessage}</Text>
-        </View>
-      )}
-      
+          </View>
+        )}
       </View>
 
-            </View>
+      <View style={styles.coinAndIndicatorsDisplayContainer}>
+        <View style={styles.pricesTextContainer}>
+          {livePrice !== null && (
+            <>
+              <Text style={{ color: 'white', fontSize: 20, fontWeight: 'bold', marginTop: 10 }}>
+                {selectedValue}/USDT
+              </Text>
+              <View style={{ flexDirection: 'row' }}>
+                <Text style={styles.selectedCurrency}>
+                  {livePrice.toFixed(2)}
+                  <Text style={styles.usdStyle}>USDT</Text>
+                </Text>
+              </View>
+            </>
+          )}
+        </View>
 
+        <View style={{ marginTop: 14 }}>
+          {selectedValue && (
+            <>
+              {selectedIndicator === 'BollingerBands' && indicatorData.upper_band && (
+                <View style={{ alignItems: 'center' }}>
+                  <Text style={styles.bbandText}>
+                    Upper Band: <Text style={styles.bbandValue}>{indicatorData.upper_band.toFixed(2)}</Text>
+                  </Text>
+                  <Text style={styles.bbandText}>
+                    Middle Band: <Text style={styles.bbandValue}>{indicatorData.middle_band.toFixed(2)}</Text>
+                  </Text>
+                  <Text style={styles.bbandText}>
+                    Lower Band: <Text style={styles.bbandValue}>{indicatorData.lower_band.toFixed(2)}</Text>
+                  </Text>
+                </View>
+              )}
+              {selectedIndicator === 'RSI' && indicatorData.rsi_value && (
+                <View>
+                  <Text style={styles.rsiText}>
+                    RSI: <Text style={styles.rsiValue}>{indicatorData.rsi_value.toFixed(2)}</Text>
+                  </Text>
+                </View>
+              )}
+            </>
+          ) }
+        </View>
+      </View>
 
-            <View style={styles.chartContainer}>
-              {selectedValue && <CandleStickChartComponent coin={selectedValue} />}
-            </View>
-          </>
-        );
-      
-  //  case 'Alerts':
-  //   return (
-  //     <ScrollView contentContainerStyle={{ padding: 10 }}>
-  //       {alerts.length > 0 ? (
-  //         alerts
-  //           .slice()
-  //           .reverse()
-  //           .map((alert, index) => {
-  //             const createdAt = new Date(alert.created_at);
-  //             const timeString = createdAt.toLocaleTimeString('en-US', {
-  //               hour: '2-digit',
-  //               minute: '2-digit',
-  //               second: '2-digit',
-  //             });
-  
-  //             return (
-  //               <View style={styles.alertContainer} key={index}>
-  //                 <Text style={styles.alertMessage}>{alert.message}</Text>
-  //                 <Text>Coin: {alert.symbol}</Text>
-  //                 <Text>RSI Value: {alert.rsi_value}</Text>
-  //                 <Text>Time Frame: {alert.timeFrame}</Text>
-  //                 <Text>Username: {alert.username}</Text>
-  //                 <Text>Email: {alert.email}</Text>
-  //                 <Text>Time: {timeString}</Text>
-  //               </View>
-  //             );
-  //           })
-  //       ) : (
-  //         // <Text>No alerts found</Text>
-  //         <Text style={styles.selectionMessage}>{alertError}</Text>
-  //       )}
-  //     </ScrollView>
-  //   );
- 
-  // default:
-  //   return null;
+      <View style={styles.chartContainer}>
+        {selectedValue && <CandleStickChartComponent coin={selectedValue} />}
+      </View>
+    </>
+  );
+}
+}
 
-    }
-  };
 
   return (
 
@@ -550,16 +471,6 @@ const HomeScreen = ({ navigation, route }) => {
           </TouchableOpacity>
           </View>
 
-          
-          {/* <View style={styles.tabsView}>
-          <TouchableOpacity style={styles.tab} onPress={() => setSelectedTab('Alerts')}>
-          <View style={[styles.tabView, selectedTab === 'Alerts' && styles.activeTab]}>
-            <Text style={[styles.tabText, selectedTab === 'Alerts' && styles.selectedTabText]}>
-              Alerts
-            </Text>
-            </View>
-          </TouchableOpacity>
-          </View> */}
         </View>
 
         <View style={styles.horizontalLine} />
@@ -590,9 +501,16 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor:'black',
   },
+  radioItemContainer: {
+    flexDirection: 'column',
+    alignItems: 'center',
+    // marginVertical: 5,
+  },
   radioLabel: {
     color: 'white',
     fontSize: 16,
+    marginTop:-11,
+    textAlign: 'center',
   },
   radioItem: {
     flexDirection: 'row-reverse',
@@ -632,7 +550,7 @@ const styles = StyleSheet.create({
     height:100
   },
   TimeframeInputContainer:{
-    height:200
+    height:128,
   },
   tabView:{
     width: '100%',
@@ -818,8 +736,9 @@ const styles = StyleSheet.create({
     justifyContent:'space-between',
   },
   chartContainer: {
-    marginTop: '10',
-    height: 380,
+    marginTop: 10,
+    height: 420,
+    // height:280,
     width: '121%',
   },
   bbandText: {
@@ -894,6 +813,37 @@ const styles = StyleSheet.create({
     fontWeight:'bold',
     color:'#2e2d2b'
   }, 
+
+  predictionContainer: {
+    padding: 20,
+    alignItems:'center',
+    // backgroundColor:'pink',
+  },
+  titleText: {
+    color:'#b29705',
+    fontWeight:'bold',
+    fontSize: 26,
+    marginBottom: 15,
+    marginTop: -20
+  },
+  error: {
+    color: 'red',
+    marginTop: 10,
+  },
+  loading: {
+    marginTop: 20,
+  },
+  prediction: {
+    marginTop: 5,
+    color:'green'
+  },
+  dropDownForPricePrediction: {
+    height: 40,
+    width: 180,
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    borderRadius: 10,
+  },
 });
 
 export default HomeScreen;

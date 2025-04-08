@@ -7,8 +7,6 @@ import LoginScreen from './components/LoginScreen';
 import SignUpScreen from './components/SignUpScreen'
 import HomeScreen from './components/HomeScreen';
 import ProfileScreen from './components/ProfileScreen';
-import SetTimeScreen from './components/SetTimeScreen';
-import ChartFullScreen from './components/ChartFullScreen';
 import ChangePasswordScreen from './components/ChangePasswordScreen';
 import EnterNewPasswordScreen from './components/EnterNewPasswordScreen';
 
@@ -20,7 +18,7 @@ export default function App() {
   useEffect(() => {
     const timer = setTimeout(() => {
       setShowSplash(false);
-    }, 8000);
+    }, 3000);
 
     return () => clearTimeout(timer); 
   }, []);
@@ -37,8 +35,6 @@ export default function App() {
             <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Home" component={HomeScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Profile" component={ProfileScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Time" component={SetTimeScreen} options={{ headerShown: false }} />
-            <Stack.Screen name="Full" component={ChartFullScreen} options={{ headerShown: false }} />
             <Stack.Screen name="Password" component={ChangePasswordScreen} options={{ headerShown: false }} />
             <Stack.Screen name="ChangePassword" component={EnterNewPasswordScreen} options={{ headerShown: false }} />
           </>

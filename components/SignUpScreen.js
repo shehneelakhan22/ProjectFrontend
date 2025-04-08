@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
 import { BACKEND_API_URL } from './configUrl';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -68,6 +68,10 @@ const SignUpScreen = ({ navigation }) => {
     //       style={styles.backgroundGradient} // Apply gradient to full screen
     //     >
     <View style={styles.container}>
+      <Image
+                source={require('../assets/App_logo.png')}
+                style={styles.logostyle}
+                    />
       <View style={styles.textInputContainer}>
         <TextInput
           placeholder="Enter email"
@@ -128,21 +132,20 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
-  // backgroundImage: {
-  //   flex: 1,
-  //   resizeMode: 'cover',
-  //   justifyContent: "center",
-  //   alignSelf: 'center',
-  //   width: "100%",
-  //   height: "100%",
-  // },
+  logostyle: {
+    marginTop:-100,
+    marginBottom: -50,
+    height: 225,
+    width: 225,
+    borderRadius: 100,
+  },
   textInputContainer: {
     alignItems: 'center',
     justifyContent: 'center',
     marginTop: 10,
   },
   myButton: {
-    top: 20,
+    top: 30,
     backgroundColor: '#b29705',
     height: 40,
     width: 250,

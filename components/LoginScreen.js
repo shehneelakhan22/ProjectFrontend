@@ -1,6 +1,6 @@
 import axios from 'axios';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
 import { BACKEND_API_URL } from './configUrl';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -38,6 +38,10 @@ const LoginScreen = ({ navigation }) => {
     //       style={styles.backgroundGradient} 
     //     >
     <View style={styles.container}>
+      <Image
+          source={require('../assets/App_logo.png')}
+          style={styles.logostyle}
+              />
       <View style={styles.textInputContainer}>
         <TextInput
           placeholder="Enter email or username"
@@ -82,6 +86,13 @@ const styles = StyleSheet.create({
     width: "100%",
     height: "100%",
   },
+  logostyle: {
+    marginTop:-100,
+    marginBottom: -30,
+    height: 225,
+    width: 225,
+    borderRadius: 100,
+  },
   textInputContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -95,8 +106,7 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   myButton: {
-    top: 20,
-    // backgroundColor: '#8f1294',
+    top: 30,
     backgroundColor:'#b29705',
     height: 40,
     width: 230,

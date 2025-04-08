@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, ScrollView, StyleSheet, ActivityIndicator } from 'react-native';
-import { Dimensions } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
 import axios from 'axios';
 import { WebView } from 'react-native-webview';
 
-// Screen width for the WebView
+// Screen dimensions
 const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
 const CandleStickChartComponent = ({ coin }) => {
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,7 @@ const CandleStickChartComponent = ({ coin }) => {
     setLoading(true);
     try {
       const url = `http://192.168.100.14:5000/api/candlestick?symbol=${symbol}&limit=100`;
-      console.log("API URL:", url); // Log the API URL to confirm it's correct
+      console.log('API URL:', url);
 
       const response = await axios.get(url);
       const data = response.data;
@@ -39,46 +39,46 @@ const CandleStickChartComponent = ({ coin }) => {
     fetchCandlestickData(coin);
   }, [coin]);
 
-  // TradingView Widget URL
-  const tradingViewWidgetUrl = `https://www.tradingview.com/chart/?symbol=BINANCE%3A${coin}USDT`;
+  // TradingView Embedded Widget URL (Lightweight)  (No ad)
+  const tradingViewWidgetUrl = `https://s.tradingview.com/widgetembed/?symbol=BINANCE%3A${coin}USDT&interval=1&hidesidetoolbar=1&hideideas=1&theme=light&style=1&locale=en&toolbarbg=f1f3f6`;
+
+  //   // TradingView Widget URL (Containing Ad)
+  // const tradingViewWidgetUrl = `https://www.tradingview.com/chart/?symbol=BINANCE%3A${coin}USDT`;
 
   return (
-    <ScrollView style={styles.container}>
-      {/* <Text style={styles.title}>Candlestick Chart for {coin}/USDT</Text> */}
-
+    <View style={styles.container}>
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : (
         <View style={styles.chartContainer}>
-          {/* Use WebView to embed TradingView's candlestick chart */}
           <WebView
             source={{ uri: tradingViewWidgetUrl }}
-            style={{ height: 1000, width: screenWidth - 10 }}
+            style={styles.webView}
             javaScriptEnabled={true}
             domStorageEnabled={true}
             startInLoadingState={true}
-            scrollEnabled={true}
+            scrollEnabled={false}
           />
         </View>
       )}
-    </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: '#fff',
   },
-  title: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginBottom: 10,
-  },
   chartContainer: {
-    alignItems: 'center',
+    width: screenWidth,
+    height: screenHeight * 0.6,
+  },
+  webView: {
+    width: '100%',
+    height: '100%',
   },
 });
 

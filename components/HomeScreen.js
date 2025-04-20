@@ -7,6 +7,7 @@ import { Dimensions } from 'react-native';
 import axios from 'axios';
 import CandleStickChartComponent from './CandleStickChartComponent';
 import { BACKEND_API_URL } from './configUrl';
+import { color } from 'd3-color';
 
 const HomeScreen = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('CryptoSignals');
@@ -15,77 +16,171 @@ const HomeScreen = ({ navigation }) => {
   const [selectedIndicator, setSelectedIndicator] = useState(null);
   const [indicatorData, setIndicatorData] = useState({});
   const [isCoinSelected, setIsCoinSelected] = useState(false); // Track if a coin is selected
-  const [selectionMessage, setSelectionMessage] = useState('');
   const [error, setError] = useState('');
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState(null);
-  const [investmentAmount, setInvestmentAmount] = useState(null);
+  const [investmentAmount, setInvestmentAmount] = useState('0');
   const [selectedCoin, setSelectedCoin] = useState('');
   const [predictions, setPredictions] = useState([]);
   const [loading, setLoading] = useState(false);
   const [predictionError, setPredictionError] = useState('');
+  const [isBotRunning, setIsBotRunning] = useState(false);
+  const [startTimestamp, setStartTimestamp] = useState(null);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const [botRunning, setBotRunning] = useState(false);
+  const [dates, setDates] = useState([]);
+  const [balance, setBalance] = useState(null);  // This will store the updated balance
 
 
-  const getFormattedDateLabels = () => {
-    const today = new Date();
-    return predictions.map((_, i) => {
-      const date = new Date(today);
-      date.setDate(today.getDate() + i);
-      return i % 9 === 0 ? date.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' }) : '';
-    });
-  };
-  
-  const fetchPredictions = async (coinSymbol) => {
-    const coin = coinSymbol?.toLowerCase();
 
-    if (!coin) {
-      setPredictionError('Please select a coin.');
-      return;
-    }
-
-    setLoading(true);
-    setPredictionError('');
-    setPredictions([]);
-
-    try {
-      const response = await axios.get(`${BACKEND_API_URL}/predict?coin=${coin}`);
-
-      if (response.data && response.data.predicted_prices) {
-        setPredictions(response.data.predicted_prices);
-        setPredictionError('');
-      } else {
-        setPredictionError('No prediction data available.');
-      }
-    } catch (err) {
-      console.error('Error fetching predictions:', err);
-      setPredictionError(err.response?.data?.error || 'Error fetching predictions.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const startBot = () => {
+  ////////////// "Crypto Signals" tab functions and states //////////////
+  const startBot = async () => {
     if (selectedTimeframe && selectedTicker && investmentAmount) {
       console.log(`Bot started with timeframe: ${selectedTimeframe} minutes`);
-      // Add logic to start the bot with the selected timeframe
-    } else {
+      setIsBotRunning(true);
+  
+      const now = new Date();
+      const options = { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' };
+      const date = now.toLocaleDateString('en-US', options);
+      const time = now.toLocaleTimeString('en-US', {
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit',
+        hour12: true,
+      });
+  
+      setStartTimestamp(`${time} - ${date}`);
+      setBotRunning(true);
+      setElapsedTime(0);
+  
+      // Convert formatted amount string back to a number
+      const numericAmount = Number(investmentAmount.replace(/,/g, ''));
+      // 1. Update wallet
+      const updateResponse = await fetch(`${BACKEND_API_URL}/update_wallet`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Important if using session
+        body: JSON.stringify({ amount: numericAmount }),
+      });
+
+      const updateData = await updateResponse.json();
+
+      if (!updateResponse.ok) {
+        alert(updateData.error || 'Failed to update wallet');
+        return;
+      }
+
+      // 2. Get updated balance
+      const balanceResponse = await fetch(`${BACKEND_API_URL}/get_balance`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      const balanceData = await balanceResponse.json();
+
+      if (!balanceResponse.ok) {
+        alert(balanceData.error || 'Failed to fetch balance');
+        return;
+      }
+
+      setBalance(balanceData.balance);
+
+      console.log(`Updated Balance: $${balanceData.balance}`);
+
+      // 3. Call /startbot endpoint to pass values
+     const startBotResponse = await fetch(`${BACKEND_API_URL}/startbot`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      credentials: 'include',
+      body: JSON.stringify({
+        timeframe: selectedTimeframe,
+        ticker: selectedTicker,
+        investment: numericAmount,
+        balance: balanceData.balance, 
+     }),
+    });
+
+    const botData = await startBotResponse.json();
+    if (!startBotResponse.ok) {
+      alert(botData.error || 'Failed to start bot');
+      return;
+    }
+    console.log('Bot started successfully:', botData.message);
+  
+  } else {
       alert('Please select all fields before starting the bot.');
     }
   };
   
+
+  const stopBot = () => {
+    setIsBotRunning(false);
+    setSelectedTicker(null);
+    setSelectedTimeframe(null);
+    setInvestmentAmount('0');
+    setBotRunning(false); // Stop the timer
+  }
+
   useEffect(() => {
-    if (!isCoinSelected) {
-      setSelectionMessage(
-        <Text>
-      Please select a coin.
-    </Text>
-      );
+    let timer;
+    if (botRunning) {
+      timer = setInterval(() => {
+        setElapsedTime((prevTime) => prevTime + 1);
+      }, 1000);
     } else {
-      setSelectionMessage('');
+      clearInterval(timer); // Clear interval when stopped
     }
-  }, [isCoinSelected]);
+
+    return () => clearInterval(timer); // Cleanup interval on component unmount
+  }, [botRunning]);
+
+  const formatTime = (seconds) => {
+    const hrs = Math.floor(seconds / 3600);
+    const mins = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+
+    return `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
   
+
+  ////////////// "Price Prediction" tab functions and states //////////////
+  const getFormattedDateLabels = () => {
+    return dates.map((date, index) => (index % 5 === 0 ? date.slice(5) : ''));
+
+  };
   
+  const fetchPredictions = async (coin) => {
+    if (!coin) return;
+    
+    setLoading(true);
+    setPredictionError('');
+    setPredictions([]);
+    setDates([]);
+  
+    try {
+      const response = await fetch(`${BACKEND_API_URL}/predict?coin=${coin}`);
+      const data = await response.json();
+  
+      if (data.error) {
+        setPredictionError(data.error);
+      } else {
+        setPredictions(data.predictions);
+        setDates(data.future_dates);
+      }
+    } catch (error) {
+      setPredictionError('Failed to fetch predictions.');
+    } finally {
+      setLoading(false);
+    }
+  };
+  
+
+  
+  ////////////// "Live Prices" tab functions and states //////////////
   useEffect(() => {
     let priceInterval;
   
@@ -159,104 +254,178 @@ const HomeScreen = ({ navigation }) => {
       case 'CryptoSignals':
         return (
           <>
-          <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-            <Text style={styles.StartTradeText}>Start Crypto Trade</Text>
-          <View style={styles.CryptoInputContainer}>
-          <Text style={styles.labelStyling}>Select Cryptocurrency:</Text>
-          <View style={{alignItems:'center'}}>
-          <View style={styles.coinsDropDownInCryptoSignals}>
-              <RNPickerSelect 
-                onValueChange={(value) => setSelectedTicker(value)}
-                items={[
-                  { label: 'Bitcoin (BTC)', value: 'BTC' },
-                  { label: 'Ethereum (ETH)', value: 'ETH' },
-                  { label: 'Binance Coin (BNB)', value: 'BNB'},
-                ]}
-                style={pickerSelectStyles.inputAndroid}
-                placeholder={{
-                  label: 'Select a coin....',
-                  value: null,
-                }}
-              />
-            </View>
-            </View>
-            </View>
+          {isBotRunning ? (
 
-       <View style={styles.TimeframeInputContainer}>    
-        <Text style={styles.labelStyling}>Select Timeframe:</Text>
-         <View style={{alignItems:'center'}}>
-           <RadioButton.Group
-                onValueChange={value => {
-                  setSelectedTimeframe(value);
-                  setError(''); // Clear error when an option is selected
-                }}
-                value={selectedTimeframe}
-              >
-                <View style={{flexDirection: 'row', justifyContent:'space-evenly', width:'100%'}}>
-                <View style={styles.radioItemContainer}>
-                <RadioButton.Item
-                  value="1m"
-                  status={selectedTimeframe === '1m' ? 'checked' : 'unchecked'}
-                  color="#b29705"
-                />
-                <Text style={styles.radioLabel}>1 minute</Text>
-                </View>
-
-                <View style={styles.radioItemContainer}>
-                <RadioButton.Item
-                  value="5m"
-                  status={selectedTimeframe === '5m' ? 'checked' : 'unchecked'}
-                  color="#b29705"
-                />
-                <Text style={styles.radioLabel}>5 minutes</Text>
-                </View>
-
-                <View style={styles.radioItemContainer}>
-                <RadioButton.Item
-                  value="15m"
-                  status={selectedTimeframe === '15m' ? 'checked' : 'unchecked'}
-                  color="#b29705"
-                />
-                <Text style={styles.radioLabel}>15 minute</Text>
-                </View>
-                </View>
-              </RadioButton.Group>
-              </View>
-               </View>
-               
-         <View style={styles.inputContainer}>
-            <Text style={styles.labelStyling}>Add Amount:</Text>
-            <View style={styles.InputContainerStyling}>
-              <TextInput 
-              style={[ 
-                styles.textInputinputStyling,
-                { color: investmentAmount === '0$' ? 'gray' : 'white' }, // Change text color based on input
-                ]}
-                keyboardType="numeric"
-                placeholder="0$"
-                placeholderTextColor="gray"
-                value={investmentAmount}
-                onChangeText={(text) => {
-                  // Remove non-numeric characters except the dollar sign
-                let numericValue = text.replace(/[^0-9]/g, '');
-
-                 // Ensure 0 is removed when user starts typing
-                 if (numericValue.startsWith('0') && numericValue.length > 1) {
-                   numericValue = numericValue.slice(1);
-                  }
-
-                // Update state with formatted value
-                setInvestmentAmount(numericValue ? `${numericValue}$` : '0$');
-              }}
-              />
-              </View>
-               </View>
-               <View style={styles.buttonView}>
-                <TouchableOpacity style={styles.startButton} onPress={startBot}>
-                  <Text style={styles.startButtonText}>Start</Text>
+            <ScrollView  
+            showsVerticalScrollIndicator={true}
+            horizontal={false} 
+            contentContainerStyle={[styles.runningBotContainer, { flexGrow: 1 }]} >
+               <Text style={styles.botRunningText}>Bot is running...</Text>
+               <View style={styles.stopButtonView}> 
+                <TouchableOpacity style={styles.stopButton} onPress={stopBot}>
+                  <Text style={styles.stopButtonText}>Stop</Text>
                   </TouchableOpacity>
-                   </View>
-                   </ScrollView>
+              </View>
+
+      <View style={styles.botDetailsContainer}>  
+        <View style={styles.selectedDetailsContainer}>   
+      <Text style={styles.timestampText}>
+        Bot Started at: <Text style={{ fontStyle: 'italic', color:'#00FFCC' }}> {startTimestamp}</Text>
+      </Text>
+      <Text style={{ color: '#00FFCC', fontSize: 18, fontWeight: 'bold', marginBottom: 5, }}>
+        {formatTime(elapsedTime)}
+      </Text>
+
+      <Text style={styles.detailText}>
+        Selected Coin: <Text style={styles.highlighted}>{selectedTicker}</Text>
+      </Text>
+      <Text style={styles.detailText}>
+        Investment: <Text style={styles.highlighted}>$ {investmentAmount}</Text>
+      </Text>
+      <Text style={styles.detailText}>
+        Current Amount: <Text style={[styles.highlighted, {color:'#00ff00'}]}>$ {balance}</Text>
+      </Text>
+      <Text style={styles.detailText}>
+        Timeframe: <Text style={styles.highlighted}>{
+        selectedTimeframe === '1m' ? '1 min' :
+        selectedTimeframe === '5m' ? '5 mins' :
+        selectedTimeframe === '15m' ? '15 mins' : ''}
+      </Text>
+      </Text>
+      <Text style={styles.detailText}>
+        Coins in Wallet: <Text style={styles.highlighted}>2</Text>
+      </Text>
+      </View> 
+
+      <View style={styles.card}>
+        <View style={styles.IndividualCard}>
+        <Text style={styles.coinText}>BTC <Text style={{ color: '#00ff00' }}>$71,013 <Text style={styles.conStatus}>Bought</Text></Text></Text>
+        <Text style={styles.cardTimestamp}>10:10:20pm - Monday, Apr 10, 2025</Text>
+        </View>
+
+        <View style={styles.IndividualCard}>
+        <Text style={styles.coinText}>BTC <Text style={{ color: '#00ff00' }}>$77,013 <Text style={styles.conStatus}>Sold</Text></Text></Text>
+        <Text style={styles.cardTimestamp}>12:20:00am - Monday, Apr 11, 2025</Text>
+        </View>
+
+        <View style={styles.IndividualCard}>
+        <Text style={styles.coinText}>BTC <Text style={{ color: '#00ff00' }}>$77,013 <Text style={styles.conStatus}>Bought</Text></Text></Text>
+        <Text style={styles.cardTimestamp}>12:20:00am - Monday, Apr 11, 2025</Text>
+        </View>
+
+      </View>
+
+      </View>  
+               
+            </ScrollView>
+
+            ) : (
+
+              <ScrollView contentContainerStyle={styles.scrollViewContainer}>
+                 <Text style={styles.StartTradeText}>Start Crypto Bot</Text>
+                 <View style={styles.CryptoInputContainer}>
+                   <Text style={styles.labelStyling}>Select Cryptocurrency:</Text>
+                    <View style={{alignItems:'center'}}>
+                       <View style={styles.coinsDropDownInCryptoSignals}>
+                        <RNPickerSelect 
+                        onValueChange={(value) => setSelectedTicker(value)}
+                        items={[
+                           { label: 'Bitcoin (BTC)', value: 'BTC' },
+                           { label: 'Ethereum (ETH)', value: 'ETH' },
+                           { label: 'Binance Coin (BNB)', value: 'BNB'},
+                          ]}
+                          style={pickerSelectStyles.inputAndroid}
+                          placeholder={{
+                             label: 'Select a coin....',
+                             value: null,
+                            }}
+                        />
+                       </View>
+                    </View>
+                </View>
+                
+                <View style={styles.TimeframeInputContainer}>
+                  <Text style={styles.labelStyling}>Select Timeframe:</Text>
+                  <View style={{alignItems:'center'}}>
+                    <RadioButton.Group
+                    onValueChange={value => {
+                       setSelectedTimeframe(value);
+                       setError(''); // Clear error when an option is selected
+                        }}
+                        value={selectedTimeframe}
+                        >
+                          <View style={{flexDirection: 'row', justifyContent:'space-evenly', width:'100%'}}>
+
+                            <View style={styles.radioItemContainer}>
+                              <RadioButton.Item
+                              value="1m"
+                              status={selectedTimeframe === '1m' ? 'checked' : 'unchecked'}
+                              color="#b29705"
+                              />
+                              <Text style={styles.radioLabel}>1 minute</Text>
+                            </View>
+
+                            <View style={styles.radioItemContainer}>
+                              <RadioButton.Item
+                              value="5m"
+                              status={selectedTimeframe === '5m' ? 'checked' : 'unchecked'}
+                              color="#b29705"
+                              />
+                              <Text style={styles.radioLabel}>5 minutes</Text>
+                            </View>
+                            
+                            <View style={styles.radioItemContainer}>
+                              <RadioButton.Item
+                              value="15m"
+                              status={selectedTimeframe === '15m' ? 'checked' : 'unchecked'}
+                              color="#b29705"
+                              />
+                              <Text style={styles.radioLabel}>15 minute</Text>
+                            </View>
+
+                          </View>
+                    </RadioButton.Group>
+                  </View>
+                </View>
+               
+                <View style={styles.inputContainer}>
+                  <Text style={styles.labelStyling}>Add Amount:</Text>
+                  <View style={styles.InputContainerStyling}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                      <Text style={styles.DollarSign}>$</Text> 
+                      <TextInput
+                      style={[ 
+                        styles.textInputinputStyling,
+                        { color: investmentAmount === '0' ? 'gray' : 'white' }
+                      ]}
+                      keyboardType="numeric"
+                      placeholder="0"
+                      placeholderTextColor="gray"
+                      value={investmentAmount}
+                      onChangeText={(text) => {
+                        let numericValue = text.replace(/[^0-9]/g, '');
+                        numericValue = numericValue.replace(/^0+/, '');
+                        const formattedValue = numericValue
+                          ? parseInt(numericValue, 10).toLocaleString('en-US')
+                          : '0';
+                        setInvestmentAmount(formattedValue);
+                      }}
+                      />
+                    </View>
+
+                  </View>
+
+                </View>
+
+                <View style={styles.buttonView}>
+                  <TouchableOpacity style={styles.startButton} onPress={startBot}>
+                    <Text style={styles.startButtonText}>Start</Text>
+                  </TouchableOpacity>
+                </View>
+
+              </ScrollView>
+            
+            )}
           </>
         );
         
@@ -282,6 +451,8 @@ const HomeScreen = ({ navigation }) => {
                   placeholder={{ label: 'Select a coin', value: null }}
                 />
               </View>
+
+              <Text style={styles.predictionCoin}>{selectedCoin}</Text>
     
               {loading && <ActivityIndicator size="large" style={styles.loading} />}
     
@@ -291,7 +462,6 @@ const HomeScreen = ({ navigation }) => {
                 <View style={styles.chartContainer}>
                  <LineChart
                  data={{
-                  // labels: predictions.map((_, i) => (i % 9 === 0 ? `Day ${i + 1}` : '')),
                   labels: getFormattedDateLabels(),
 
                   datasets: [
@@ -473,7 +643,7 @@ const HomeScreen = ({ navigation }) => {
 
         </View>
 
-        <View style={styles.horizontalLine} />
+        {/* <View style={styles.horizontalLine} /> */}
         <View style={styles.contentContainer}>
           {renderContent ? renderContent() : <Text>No Content Available</Text>}
         </View>
@@ -504,7 +674,6 @@ const styles = StyleSheet.create({
   radioItemContainer: {
     flexDirection: 'column',
     alignItems: 'center',
-    // marginVertical: 5,
   },
   radioLabel: {
     color: 'white',
@@ -587,7 +756,7 @@ const styles = StyleSheet.create({
     height: 50,
   },
   tabContainer: {
-    height:29,
+    height:30,
     display:'flex',
     flexDirection: 'row',
     justifyContent:'center',
@@ -600,7 +769,7 @@ const styles = StyleSheet.create({
   },
   tabsView:{
     height:'100%',
-    width:'33.5%',
+    width:'33.3%',
     display:'flex',
     justifyContent:'center',
     alignItems:'center',
@@ -663,12 +832,20 @@ const styles = StyleSheet.create({
     width: 280,
     borderRadius: 10,
   },
+  DollarSign:{
+    color: 'white', 
+    fontWeight: 'bold', 
+    fontSize: 20, 
+    paddingLeft:33,
+    marginTop:-3
+  },
   textInputinputStyling:{
     height: 40,
     width: 280,
     borderRadius: 10,
     borderWidth:0,
-    paddingLeft:10,
+    marginLeft:0,
+    fontSize:16
   },
   horizontalLine: {
     borderBottomColor: 'gray',
@@ -822,7 +999,7 @@ const styles = StyleSheet.create({
   titleText: {
     color:'#b29705',
     fontWeight:'bold',
-    fontSize: 26,
+    fontSize: 20,
     marginBottom: 15,
     marginTop: -20
   },
@@ -843,6 +1020,94 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     justifyContent: 'center',
     borderRadius: 10,
+  },
+  predictionCoin: {
+    color:'#b29705',
+    fontSize:18,
+    marginTop:10,
+    fontWeight:'bold'
+  },
+  runningBotContainer: {
+    flex:1,
+    width: '100%',
+    alignItems:'center',
+  },
+  botRunningText: {
+    marginBottom: 20,
+    alignSelf:'center',
+    fontSize: 20, 
+    color: '#00ff00', 
+    fontWeight: 'bold',
+  },
+  stopButtonView: {
+    alignItems: 'center',
+  },
+  stopButton: {
+    width:150,
+    alignItems:'center',
+    backgroundColor: 'red',
+    paddingVertical: 8,
+    paddingHorizontal: 25,
+    borderRadius: 20,
+  },
+  stopButtonText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  botDetailsContainer: {
+    marginTop: 20,
+    paddingLeft: 11,
+    paddingRight: 11,
+    // boxShadow: '-1px -2px 17px rgba(255, 255, 255, 0.96)',
+    borderRadius: 10,
+    width:'110%',
+    height:500
+  },
+  selectedDetailsContainer:{
+    alignItems:'center'
+  },
+  timestampText: {
+    color: 'white',
+    fontSize: 14,
+    marginVertical: 10,
+  },
+  detailText: {
+    color: 'white',
+    fontSize: 15,
+    marginVertical: 2,
+  },
+  highlighted: {
+    fontWeight: 'bold',
+    color: '#ffd700',
+  },
+  card: {
+    backgroundColor: '#6e6e6e',
+    paddingHorizontal: 12,
+    marginVertical: 10,
+    borderRadius: 10,
+    paddingTop:5,
+    paddingBottom:5,
+  },
+  IndividualCard: {
+    backgroundColor: '#171716',
+    borderRadius:10,
+    padding:10,
+    marginVertical:'5'
+  },
+  conStatus: {
+    color: '#ffd700',
+    // fontWeight: 'bold',
+    marginBottom: 5,
+  },
+  coinText: {
+    color: 'white',
+    fontSize: 16,
+  },
+  cardTimestamp: {
+    color: '#ccc',
+    fontSize: 13,
+    marginTop: 3,
   },
 });
 

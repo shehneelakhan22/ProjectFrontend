@@ -41,7 +41,7 @@ const ChangePasswordScreen = ({ navigation }) => {
         setError('New password and confirm password do not match');
     } else {
         try {
-            const response = await fetch('http://127.0.0.1:5000/change_password', {
+            const response = await fetch(`${BACKEND_API_URL}/change_password`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',

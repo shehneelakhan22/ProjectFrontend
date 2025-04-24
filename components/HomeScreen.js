@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, FlatList, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, FlatList, ActivityIndicator, Alert, Animated } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { RadioButton } from 'react-native-paper';
 import { LineChart } from 'react-native-chart-kit'; // Import the charting library
@@ -7,7 +7,6 @@ import { Dimensions } from 'react-native';
 import axios from 'axios';
 import CandleStickChartComponent from './CandleStickChartComponent';
 import { BACKEND_API_URL } from './configUrl';
-import { color } from 'd3-color';
 
 const HomeScreen = ({ navigation }) => {
   const [selectedTab, setSelectedTab] = useState('CryptoSignals');
@@ -29,16 +28,22 @@ const HomeScreen = ({ navigation }) => {
   const [elapsedTime, setElapsedTime] = useState(0);
   const [botRunning, setBotRunning] = useState(false);
   const [dates, setDates] = useState([]);
-  const [balance, setBalance] = useState(null);  // This will store the updated balance
+  const [balance, setBalance] = useState(null); 
+  const [botLoading, setBotLoading] = useState(false); 
+  const [trades, setTrades] = useState([]);
+  const [finalBalance, setFinalBalance] = useState(0);
 
 
 
   ////////////// "Crypto Signals" tab functions and states //////////////
+
+
+  // ---------------Start the bot---------------------
   const startBot = async () => {
     if (selectedTimeframe && selectedTicker && investmentAmount) {
       console.log(`Bot started with timeframe: ${selectedTimeframe} minutes`);
       setIsBotRunning(true);
-  
+
       const now = new Date();
       const options = { weekday: 'long', month: 'short', day: 'numeric', year: 'numeric' };
       const date = now.toLocaleDateString('en-US', options);
@@ -85,12 +90,16 @@ const HomeScreen = ({ navigation }) => {
         return;
       }
 
-      setBalance(balanceData.balance);
-
+      const balanceFormatted = Number(balanceData.balance).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      setBalance(balanceFormatted);
+      // setBalance(Number(balanceData.balance).toLocaleString());
       console.log(`Updated Balance: $${balanceData.balance}`);
 
       // 3. Call /startbot endpoint to pass values
-     const startBotResponse = await fetch(`${BACKEND_API_URL}/startbot`, {
+     const startBotResponse = await fetch(`${BACKEND_API_URL}/start_Bot`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -98,8 +107,7 @@ const HomeScreen = ({ navigation }) => {
       credentials: 'include',
       body: JSON.stringify({
         timeframe: selectedTimeframe,
-        ticker: selectedTicker,
-        investment: numericAmount,
+        coin: selectedTicker,
         balance: balanceData.balance, 
      }),
     });
@@ -109,22 +117,121 @@ const HomeScreen = ({ navigation }) => {
       alert(botData.error || 'Failed to start bot');
       return;
     }
-    console.log('Bot started successfully:', botData.message);
   
   } else {
       alert('Please select all fields before starting the bot.');
     }
   };
+
+  
+  // ---------------Stop the bot---------------------
+  const stopBot = async () => {
+    setBotLoading(true);
+
+    try {
+      const response = await fetch(`${BACKEND_API_URL}/stop_Bot`);
+      const data = await response.json();
+  
+      if (response.ok) {
+        const {final_portfolio_value, total_profit, total_trades } = data;
+
+        setBotLoading(false);
+        setIsBotRunning(false);
+        
+      Alert.alert(
+        'Bot Stopped Successfully', // Title
+        `📈 Current Balance: $ ${final_portfolio_value}\n` +
+        `💰 Total Profit: $${total_profit}\n` +
+        `📊 Total Trades: ${total_trades}`,
+        [{ text: 'OK' }]
+      );
+
+      // Send updated balance to /update_wallet
+      await fetch(`${BACKEND_API_URL}/update_wallet`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          currentBalance: final_portfolio_value,
+        }),
+      });
+
+      setSelectedTicker(null);
+      setSelectedTimeframe(null);
+      setInvestmentAmount('0');
+      setBotRunning(false); // Stop the timer
+      } else {
+        alert(`Error: ${data.error || 'Something went wrong stopping the bot.'}`);
+        setBotLoading(false);
+      }
+    } catch (error) {
+      alert(`Network Error: ${error.message}`);
+      setBotLoading(false);
+    }
+  };
+
+  // ---------------fetching trades---------------------
+  const fetchTrades = async () => {
+    try {
+      const response = await fetch(`${BACKEND_API_URL}/get_trades`);
+      const data = await response.json();
+      setTrades(data.trades.reverse());  // Latest trade on top
+      const formattedBalance = Number(data.final_portfolio_value).toLocaleString(undefined, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+      setFinalBalance(formattedBalance);
+      
+    } catch (error) {
+      console.error("Error fetching trades:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchTrades(); // fetch immediately
+    const interval = setInterval(fetchTrades, 5000); 
+    return () => clearInterval(interval); // cleanup on unmount
+  }, []);
+  
   
 
-  const stopBot = () => {
-    setIsBotRunning(false);
-    setSelectedTicker(null);
-    setSelectedTimeframe(null);
-    setInvestmentAmount('0');
-    setBotRunning(false); // Stop the timer
-  }
+  const renderTrade = ({ item }) => (
+    <View style={[styles.IndividualCard, item.type === 'BUY' ? styles.buy : styles.sell]}>
+      <Text style={styles.type}>{item.type}  <Text style={{color:'#00ff00', fontWeight:'condensed'}}>${item.price.toFixed(2)}</Text></Text>
+      <Text style={{ fontStyle: 'italic', color:'#00FFCC' }}>{item.time}</Text>
+      {item.profit !== undefined && (
+        <Text style={{ color: 'white'}}>Profit: <Text style={{ color: '#00ff00'}}>${item.profit.toFixed(2)}</Text></Text>
+      )}
+    </View>
+  );
 
+  // ---------------Loading picture animation---------------------
+  const fadeAnim = useRef(new Animated.Value(1)).current;
+  useEffect(() => {
+      if (botLoading) {
+        Animated.loop(
+          Animated.sequence([
+            Animated.timing(fadeAnim, {
+              toValue: 0.3, // fade out
+              duration: 600,
+              useNativeDriver: true,
+            }),
+            Animated.timing(fadeAnim, {
+              toValue: 1, // fade in
+              duration: 600,
+              useNativeDriver: true,
+            }),
+          ])
+        ).start();
+      } else {
+        fadeAnim.setValue(1); // reset to fully visible when not loading
+      }
+    }, [botLoading]);
+
+
+  // --------Timer--------
   useEffect(() => {
     let timer;
     if (botRunning) {
@@ -248,6 +355,7 @@ const HomeScreen = ({ navigation }) => {
     return () => clearInterval(indicatorInterval);
   }, [selectedIndicator, selectedValue]);
   
+  ////////////////////////////----- Tabs Views ------////////////////////////////
 
   const renderContent = () => {
     switch (selectedTab) {
@@ -255,11 +363,24 @@ const HomeScreen = ({ navigation }) => {
         return (
           <>
           {isBotRunning ? (
+            botLoading ? (
+              <View style={{ display:'flex', width:'100%', justifyContent: 'center', alignItems: 'center', marginTop:100 }}>
+              {/* <ActivityIndicator size="large" color="#00FFCC" /> */}
+              <Animated.Image
+              source={require('../assets/hello_Logo.png')}
+              style={{
+                width: 70,
+                height: 70,
+                opacity: fadeAnim,
+              }}
+              />
+              <Text style={{ color: 'white', marginTop: 10 }}>Please wait a moment, BOT is stopping...</Text>
+              </View>
+              
+            ) : (
 
-            <ScrollView  
-            showsVerticalScrollIndicator={true}
-            horizontal={false} 
-            contentContainerStyle={[styles.runningBotContainer, { flexGrow: 1 }]} >
+            <View  
+            Style={[styles.runningBotContainer, { flexGrow: 1 }]} >
                <Text style={styles.botRunningText}>Bot is running...</Text>
                <View style={styles.stopButtonView}> 
                 <TouchableOpacity style={styles.stopButton} onPress={stopBot}>
@@ -283,7 +404,7 @@ const HomeScreen = ({ navigation }) => {
         Investment: <Text style={styles.highlighted}>$ {investmentAmount}</Text>
       </Text>
       <Text style={styles.detailText}>
-        Current Amount: <Text style={[styles.highlighted, {color:'#00ff00'}]}>$ {balance}</Text>
+        Current Balance: <Text style={[styles.highlighted, {color:'#00ff00'}]}>$ {balance}</Text>
       </Text>
       <Text style={styles.detailText}>
         Timeframe: <Text style={styles.highlighted}>{
@@ -292,32 +413,23 @@ const HomeScreen = ({ navigation }) => {
         selectedTimeframe === '15m' ? '15 mins' : ''}
       </Text>
       </Text>
-      <Text style={styles.detailText}>
-        Coins in Wallet: <Text style={styles.highlighted}>2</Text>
-      </Text>
       </View> 
 
       <View style={styles.card}>
-        <View style={styles.IndividualCard}>
-        <Text style={styles.coinText}>BTC <Text style={{ color: '#00ff00' }}>$71,013 <Text style={styles.conStatus}>Bought</Text></Text></Text>
-        <Text style={styles.cardTimestamp}>10:10:20pm - Monday, Apr 10, 2025</Text>
-        </View>
-
-        <View style={styles.IndividualCard}>
-        <Text style={styles.coinText}>BTC <Text style={{ color: '#00ff00' }}>$77,013 <Text style={styles.conStatus}>Sold</Text></Text></Text>
-        <Text style={styles.cardTimestamp}>12:20:00am - Monday, Apr 11, 2025</Text>
-        </View>
-
-        <View style={styles.IndividualCard}>
-        <Text style={styles.coinText}>BTC <Text style={{ color: '#00ff00' }}>$77,013 <Text style={styles.conStatus}>Bought</Text></Text></Text>
-        <Text style={styles.cardTimestamp}>12:20:00am - Monday, Apr 11, 2025</Text>
-        </View>
-
+      <Text style={styles.balance}>
+        Portfolio Balance: <Text style={{ color: '#21a321'}}>${finalBalance} </Text>
+      </Text>
+      <FlatList
+        data={trades}
+        renderItem={renderTrade}
+        keyExtractor={(_, index) => index.toString()}
+      />
       </View>
 
       </View>  
                
-            </ScrollView>
+    </View> 
+    )
 
             ) : (
 
@@ -756,7 +868,7 @@ const styles = StyleSheet.create({
     height: 50,
   },
   tabContainer: {
-    height:30,
+    height:33,
     display:'flex',
     flexDirection: 'row',
     justifyContent:'center',
@@ -765,7 +877,7 @@ const styles = StyleSheet.create({
     marginRight: -12,
     alignItems:'center',
     backgroundColor:'white',
-    borderRadius:40
+    borderRadius:10
   },
   tabsView:{
     height:'100%',
@@ -777,7 +889,7 @@ const styles = StyleSheet.create({
   tab: {
     height:'100%',
     width:'100%',
-    borderRadius:40,
+    borderRadius:10,
     display:'flex',
     justifyContent:'center',
     alignItems:'center',
@@ -793,18 +905,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: 'white',
     width:'100%',
-    borderRadius:40,
+    borderRadius:10,
   },
   tabView: {
     width: '100%',
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 40,
+    borderRadius: 10,
   },
   activeTab: {
     backgroundColor: '#b29705',
-    borderRadius:40,
+    borderRadius:10,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -1090,10 +1202,21 @@ const styles = StyleSheet.create({
     paddingBottom:5,
   },
   IndividualCard: {
-    backgroundColor: '#171716',
+    // backgroundColor: '#171716',
+    backgroundColor:'black',
     borderRadius:10,
     padding:10,
-    marginVertical:'5'
+    marginVertical:'5',
+  },
+  SummaryText:{
+    color:'white',
+    fontWeight:'bold',
+    fontSize:16
+  },
+  infoText:{
+    marginTop:2,
+    color:'white',
+    fontSize:14
   },
   conStatus: {
     color: '#ffd700',
@@ -1108,6 +1231,30 @@ const styles = StyleSheet.create({
     color: '#ccc',
     fontSize: 13,
     marginTop: 3,
+  },
+  balance: { 
+    fontSize: 18, 
+    fontWeight: '500', 
+    marginBottom: 10 
+  },
+  card: {
+    backgroundColor: '#eee',
+    padding: 10,
+    marginVertical: 6,
+    borderRadius: 10,
+  },
+  buy: {
+    borderLeftWidth: 5,
+    borderLeftColor: 'green',
+  },
+  sell: {
+    borderLeftWidth: 5,
+    borderLeftColor: 'red',
+  },
+  type: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color:'#b29705'
   },
 });
 

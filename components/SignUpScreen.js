@@ -1,13 +1,20 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
 import { BACKEND_API_URL } from './configUrl';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const SignUpScreen = ({ navigation }) => {
   const [emailText, setEmailText] = useState('');
   const [passwordText, setPasswordText] = useState('');
   const [rePasswordText, setRePasswordText] = useState('');
   const [usernameText, setUsernameText] = useState('');
+  const [focusedField, setFocusedField] = useState(null);
+  const [error, setError] = useState('');
+  const [emailError, setEmailError] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [rePasswordError, setRePasswordError] = useState('');
+  const [usernameError, setUsernameError] = useState('');
+
+
 
   const validateEmail = (email) => {
     const emailPattern = /^[a-zA-Z0-9._%+-]+@gmail\.com$/;
@@ -19,91 +26,152 @@ const SignUpScreen = ({ navigation }) => {
     return usernamePattern.test(username);
   };
 
-  const handleSignUp = () => {
-    if (!emailText || !passwordText || !rePasswordText || !usernameText) {
-      Alert.alert("Error", "Provide all credentials");
-    } else if (!validateEmail(emailText)) {
-      Alert.alert("Error", "Invalid email format, must be in the format xyz@gmail.com");
-    } else if (passwordText.length < 8) {
-      Alert.alert("Error", "Password should be at least 8 characters long");
-    } else if (passwordText !== rePasswordText) {
-      Alert.alert("Error", "Passwords do not match");
-    } else if (!validateUsername(usernameText)) {
-      Alert.alert("Error", "Username can only contain lowercase letters, numbers, underscores, and dots");
-    } else {
-      // Send signup data to backend
-      const userData = {
-        username: usernameText,
-        email: emailText,
-        password: passwordText
-      };
+  const handleSignUp = async () => {
+    setError('');
+    setEmailError(''); 
+    setPasswordError(''); 
+    setRePasswordError(''); 
+    setUsernameError('');
 
-      fetch(`${BACKEND_API_URL}/signup`, {
+    if (!emailText || !passwordText || !rePasswordText || !usernameText) {
+      setError("Provide all credentials");
+    } else if (!validateEmail(emailText)) {
+      setEmailError("Email must be in format xyz@gmail.com");
+    } else if (passwordText.length < 8) {
+      setPasswordError("Minimum 8 characters");
+    } else if (passwordText !== rePasswordText) {
+      setRePasswordError("Passwords do not match");
+    } else if (!validateUsername(usernameText)) {
+      setUsernameError("Only lowercase letters, numbers, _ and . allowed");
+    } else {
+
+      try {
+      const response = await fetch(`${BACKEND_API_URL}/signup`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(userData),
+        credentials: 'include',
+            body: JSON.stringify({
+              username: usernameText,
+              email: emailText,
+              password: passwordText 
+           }),
       })
-      .then(response => response.json())
-      .then(data => {
+      const data = await response.json();
         if (data.error) {
-          Alert.alert('Error', data.error);
+          if (data.error.toLowerCase().includes("email")) {
+            setEmailError(data.error);
+          } else if (data.error.toLowerCase().includes("username")) {
+            setUsernameError(data.error);
+          } else {
+            Alert.alert("Error", data.error);
+          }
         } else {
-          Alert.alert('Success', 'Account created successfully');
-          navigation.navigate('Home'); // Navigate to home screen on success
+          navigation.navigate('Home');
+          setError('');
+          setEmailError(''); 
+          setPasswordError(''); 
+          setRePasswordError('');
+          setUsernameError('');
+          setEmailText('');
+          setPasswordText('');
+          setRePasswordText('');
+          setUsernameText('');
         }
-      })
-      .catch(error => {
-        Alert.alert('Error', 'Failed to create account');
-        console.error('Error:', error);
-      });
+      }
+      catch(error) {
+        Alert.alert(
+          'Sign Up Error',
+          'Failed to create account.',
+          [
+            { text: 'OK' }
+          ]
+        )
+      };
     }
+
   };
 
   return (
-    // <LinearGradient
-    //       // Define the gradient colors (top to bottom)
-    //       colors={['#000000', '#010b30', '#000000']} 
-    //       style={styles.backgroundGradient} // Apply gradient to full screen
-    //     >
     <View style={styles.container}>
-      <Image
-                source={require('../assets/App_logo.png')}
-                style={styles.logostyle}
-                    />
+      <View style={styles.registerView}>
+        <Text style={styles.registerText}>Register!</Text>
+      </View>
+      <View style={styles.subContainer}>
+      {/* <Image
+      source={require('../assets/App_logo.png')}
+      style={styles.logostyle}/> */}
+
+      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+
       <View style={styles.textInputContainer}>
+      {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
         <TextInput
           placeholder="Enter email"
           value={emailText}
           onChangeText={(text) => setEmailText(text)}
-          style={styles.textInputStyle}
+          onFocus={() => setFocusedField('email')}
+          onBlur={() => setFocusedField(null)}
+          style={[
+          styles.textInputStyle,
+          focusedField === 'email' && { borderColor: '#b29705' },
+          emailError && { borderColor: 'red' }, 
+        ]}
+          placeholderTextColor="gray"
         />
       </View>
+
       <View style={styles.textInputContainer}>
+        {passwordError ? <Text style={styles.errorText}>{passwordError}</Text> : null}
         <TextInput
           placeholder="Set password"
           value={passwordText}
           onChangeText={(text) => setPasswordText(text)}
-          style={styles.textInputStyle}
+          onFocus={() => setFocusedField('password')}
+          onBlur={() => setFocusedField(null)}
+          style={[
+          styles.textInputStyle,
+          focusedField === 'password' && { borderColor: '#b29705' },
+          passwordError && { borderColor: 'red' },
+          ]}
+          placeholderTextColor="gray"
           secureTextEntry
         />
       </View>
+
       <View style={styles.textInputContainer}>
+        {rePasswordError ? <Text style={styles.errorText}>{rePasswordError}</Text> : null}
         <TextInput
           placeholder="Re-Enter password"
           value={rePasswordText}
           onChangeText={(text) => setRePasswordText(text)}
-          style={styles.textInputStyle}
+          onFocus={() => setFocusedField('rePassword')}
+          onBlur={() => setFocusedField(null)}
+          style={[
+          styles.textInputStyle,
+          focusedField === 'rePassword' && { borderColor: '#b29705' },
+          rePasswordError && { borderColor: 'red' },
+          ]}
+          placeholderTextColor="gray"
           secureTextEntry
         />
       </View>
+
       <View style={styles.textInputContainer}>
+        {usernameError ? <Text style={styles.errorText}>{usernameError}</Text> : null}
         <TextInput
           placeholder="Set Username"
           value={usernameText}
           onChangeText={(text) => setUsernameText(text)}
-          style={styles.textInputStyle}
+          onFocus={() => setFocusedField('username')}
+          onBlur={() => setFocusedField(null)}
+          style={[
+          styles.textInputStyle,
+          focusedField === 'username' && { borderColor: '#b29705' },
+          usernameError && { borderColor: 'red' },
+          ]}
+          placeholderTextColor="gray"
         />
       </View>
 
@@ -113,24 +181,50 @@ const SignUpScreen = ({ navigation }) => {
       >
         <Text style={styles.signUpButtonText}>Sign Up</Text>
       </TouchableOpacity>
+
+      <View style={styles.loginView}>
+            <Text style={styles.askingStyling}>
+              Already have an account?{' '}
+              <TouchableOpacity onPress={() => navigation.navigate('Login')}>
+                 <Text style={styles.loginText}>Login</Text>
+              </TouchableOpacity>
+            </Text>
+            </View>
+
     </View>
-    // </LinearGradient>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor:'#b29705',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  backgroundGradient: {
+  registerView:{
+    marginLeft:-150,
     flex: 1,
+    justifyContent: 'flex-end',
+  },
+  registerText:{
+    color:'black',
+    fontSize: 40,
+    fontWeight:'800',
+    fontStyle:'italic',
+    letterSpacing: 2.4,
+  },
+  subContainer:{
+    flex: 3,
+    backgroundColor:'black',
+    alignItems: 'center',
     justifyContent: 'center',
-    alignSelf: 'center',
-    width: '100%',
-    height: '100%',
+    width:'100%',
+    paddingTop: 60,
+    bottom: 0,
+    borderTopLeftRadius: 60,
+    borderTopRightRadius: 60,
   },
   logostyle: {
     marginTop:-100,
@@ -142,13 +236,13 @@ const styles = StyleSheet.create({
   textInputContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 10,
+    marginTop: 15,
   },
   myButton: {
-    top: 30,
+    top: 45,
     backgroundColor: '#b29705',
-    height: 40,
-    width: 250,
+    height: 50,
+    width: 320,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 50,
@@ -157,15 +251,38 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
   },
+  loginView:{
+    alignItems: 'center',
+    marginTop:53,
+  },
+  askingStyling: {
+    color:'white',
+    fontSize: 16, 
+  },
+  loginText:{
+    color: '#b29705', 
+    fontWeight: 'bold',
+    marginBottom:-4.5,
+    fontSize: 16, 
+  },
   textInputStyle: {
-    height: 45,
-    width: 250,
-    backgroundColor: '#fff',
+    height: 50,
+    width: 320,
+    backgroundColor: 'transparent',
     borderRadius: 10,
-    borderWidth: 0,
-    fontStyle: 'italic',
+    borderWidth: 1,
+    borderColor: 'white', // Default border color
     paddingRight: 10,
     paddingLeft: 10,
+    color: 'white', // Text color when user is typing
+  },
+  errorText: {
+    color: 'red',
+    fontSize: 13,
+    marginBottom: 5,
+    textAlign: 'left',
+    width: 250,
+    marginLeft: -56,
   },
 });
 

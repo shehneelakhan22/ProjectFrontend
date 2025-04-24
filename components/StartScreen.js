@@ -1,35 +1,32 @@
 import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity, Image } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const StartScreen = ({ navigation }) => {
   return (
-    // <LinearGradient
-    //   colors={['#000000', '#010b30', '#000000']} 
-    //   style={styles.backgroundGradient} // Apply gradient to full screen
-    // >
       <View style={styles.container}>
-        
         <Image
-                source={require('../assets/App_logo.png')}
-                style={styles.logostyle}
-              />
-        <TouchableOpacity
-          style={styles.myButton}
-          onPress={() => {
-            navigation.navigate('SignUp');
-          }}
-        >
-          <Text style={styles.signUpButtonText}>Sign Up</Text>
-        </TouchableOpacity>
-        <View style={styles.loginContainer}>
-          <Text style={styles.textStyle}>Already have an account? </Text>
-          <TouchableOpacity onPress={() => navigation.navigate('Login')}>
-            <Text style={styles.loginText}>Login</Text>
-          </TouchableOpacity>
+        source={require('../assets/App_logo.png')}
+        style={styles.logostyle}
+        />
+        <View style={styles.TextContainer}>
+        <Text style={styles.title}>Welcome to</Text>
+        <Text style={styles.appName}>Crypto Analyzer</Text>
+        <Text style={styles.subtitle}>Your gateway to crypto insights and automated trading</Text>
         </View>
+        
+        <TouchableOpacity
+          style={styles.loginButton}
+          onPress={() => { navigation.navigate('Login');}}>
+          <Text style={styles.signUpButtonText}>Sign in</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.signUpButton}
+          onPress={() => navigation.navigate('SignUp')}>
+            <Text style={styles.loginButtonText}>Sign Up</Text>
+        </TouchableOpacity>
+
       </View>
-    // </LinearGradient>
   );
 };
 
@@ -40,32 +37,68 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor:'black'
   },
-  // Added backgroundGradient style to cover full screen with gradient
-  backgroundGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignSelf: 'center',
-    width: '100%',
-    height: '100%',
-  },
   logostyle: {
-    marginTop:-100,
     marginBottom: -30,
-    height: 225,
-    width: 225,
+    height:300,
+    width:300,
     borderRadius: 100,
   },
-  myButton: {
-    // backgroundColor: '#8f1294',
+  TextContainer:{
+    display:'flex',
+    marginLeft: 30,
+    marginBottom: 50,
+    marginTop:50,
+    width:'85%'
+  },
+  title: {
+    color: 'white', 
+    fontSize: 28,
+    marginTop: 20,
+    letterSpacing: 2.4,
+    fontWeight:'200'
+  },
+  appName: {
+    marginTop: -7,
+    color: 'white', 
+    fontSize: 28,
+    marginBottom:20,
+    letterSpacing: 2.4,
+    fontWeight: '200',
+    color:'#b29705'
+  },
+  subtitle:{
+    color: 'white',
+    letterSpacing: 1.4,
+    fontSize: 14,
+    fontWeight: '200',
+    marginTop: -7,
+  },
+  loginButton: {
     backgroundColor:'#b29705',
-    height: 40,
-    width: 250,
+    height: 50,
+    width: 320,
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 50,
   },
+  signUpButton: {
+    marginTop:20,
+    backgroundColor:'transparent',
+    height: 50,
+    width: 320,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 50,
+    borderWidth:1,
+    borderColor:'#b29705'
+  },
   signUpButtonText: {
     color:'#fff',
+    fontWeight:'500',
+    fontSize: 16,
+  },
+  loginButtonText: {
+    color:'#b29705',
     fontWeight:'500',
     fontSize: 16,
   },

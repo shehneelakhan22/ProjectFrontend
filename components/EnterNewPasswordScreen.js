@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 const EnterNewPasswordScreen = ({ route, navigation }) => {
   const { currentPassword } = route.params;
@@ -9,9 +8,7 @@ const EnterNewPasswordScreen = ({ route, navigation }) => {
 
   const handleSave = () => {
     if (newPassword === confirmPassword) {
-      // Handle password change logic here
       console.log('Password changed successfully');
-      // Optionally navigate back or to another screen
       navigation.navigate("Profile");
     } else {
       console.log('Passwords do not match');
@@ -19,10 +16,6 @@ const EnterNewPasswordScreen = ({ route, navigation }) => {
   };
 
   return (
-    // <LinearGradient
-    //           colors={['#000000', '#010b30', '#000000']} 
-    //           style={styles.backgroundGradient} // Apply gradient to full screen
-    //         >
     <View style={styles.container}>
       <Text style={styles.heading}>New Password</Text>
       <View style={styles.directionTextView}>
@@ -54,7 +47,6 @@ const EnterNewPasswordScreen = ({ route, navigation }) => {
       </TouchableOpacity>
       
     </View>
-    // </LinearGradient>
   );
 };
 

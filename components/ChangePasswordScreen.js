@@ -6,75 +6,62 @@ const ChangePasswordScreen = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
   const [focusedInput, setFocusedInput] = useState(null);
+  const [error, setError] = useState('');
+  const [currentPasswordError, setCurrentPasswordError] = useState('');
+  const [newPasswordError, setNewPasswordError] = useState('');
+  const [confirmNewPasswordError, setconfirmNewPasswordError] = useState('');
   const [showPassword, setShowPassword] = useState({
     currentPassword: false,
     newPassword: false,
     confirmPassword: false,
   });
 
-  // const handleSave = () => {
-  //   if (!currentPassword && !newPassword && !confirmPassword) {
-  //     setError('Fill all the fields');
-  //   } else if (newPassword === currentPassword) {
-  //     setError('New password cannot be the same as the current password');
-  //   } else if (newPassword !== confirmPassword) {
-  //     setError('New password and confirm password do not match');
-  //   } else {
-  //     setError('');
-  //     setSuccessMessage('Password Changed Successfully');
-  //     setTimeout(() => {
-  //       setSuccessMessage('');
-  //       navigation.navigate('Profile');
-  //     }, 1000);
-  //   }
-  // };
-
   const handleSave = async () => {
+    setError('');
+    setNewPasswordError('');
+    setCurrentPasswordError('');
+    setconfirmNewPasswordError('')
+
     if (!currentPassword || !newPassword || !confirmPassword) {
         setError('Fill all the fields');
     } else if (newPassword === currentPassword) {
-        setError('New password cannot be the same as the current password');
+      setNewPasswordError('New password cannot be the same as the current password');
     } else if (newPassword !== confirmPassword) {
-        setError('New password and confirm password do not match');
+      setconfirmNewPasswordError('New password and confirm password do not match');
     } else {
-        try {
-            const response = await fetch(`${BACKEND_API_URL}/change_password`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    current_password: currentPassword,
-                    new_password: newPassword,
-                }),
-            });
+      try {
+        const response = await fetch(`${BACKEND_API_URL}/changepassword`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          credentials: 'include',
+          body: JSON.stringify({
+              current_password: currentPassword,
+              new_password: confirmPassword,
+           }),
+        });
+        console.log('hehehS');
 
-            const result = await response.json();
+        const result = await response.json();
 
-            if (response.ok) {
-                setError('');
-                setSuccessMessage('Password Changed Successfully');
-                setTimeout(() => {
-                    setSuccessMessage('');
-                    navigation.navigate('Profile');
-                }, 1000);
-            } else {
-                setError(result.error || 'Failed to change password');
-            }
-        } catch (error) {
-            setError('Network error. Please try again.');
+        if (response.ok) {
+          setError('');
+          setSuccessMessage('Password Changed Successfully');
+          setTimeout(() => {
+            setSuccessMessage('');
+            navigation.navigate('Profile');
+          }, 1000);
+        } else {
+          setError(result.error || 'Failed to change password');
         }
+      } catch (error) {
+        setError('Network error. Please try again.');
+      }
     }
 };
-
-
-  const getInputStyle = (value) => ({
-    color: value ? 'white' : 'gray',
-    fontStyle: value ? 'normal' : 'italic',
-  });
 
   const toggleShowPassword = (field) => {
     setShowPassword((prev) => ({
@@ -95,28 +82,86 @@ const ChangePasswordScreen = ({ navigation }) => {
       <View style={styles.textInputContainer}>
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-        {[{ label: 'Current Password', placeholder: 'Enter Current Password', value: currentPassword, setValue: setCurrentPassword, field: 'currentPassword' }, 
-          { label: 'New Password', placeholder: 'Enter New Password', value: newPassword, setValue: setNewPassword, field: 'newPassword' }, 
-          { label: 'Confirm New Password', placeholder: 'Confirm Password', value: confirmPassword, setValue: setConfirmPassword, field: 'confirmPassword' }].map(({ label, placeholder, value, setValue, field }) => (
-          <View key={label} style={styles.passwordContainer}>
-            <Text style={styles.label}>{label}</Text>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[styles.input, getInputStyle(value), { borderColor: focusedInput === label ? '#b29705' : 'gray' }]}
-                placeholder={placeholder}
-                placeholderTextColor="gray"
-                value={value}
-                onChangeText={setValue}
-                secureTextEntry={!showPassword[field]}
-                onFocus={() => setFocusedInput(label)}
-                onBlur={() => setFocusedInput(null)}
-              />
-              <TouchableOpacity style={styles.eyeIcon} onPress={() => toggleShowPassword(field)}>
-                <Ionicons name={showPassword[field] ? 'eye-off' : 'eye'} size={24} color="gray" />
-              </TouchableOpacity>
-            </View>
+                {/* Current Password Field */}
+                <View style={styles.passwordContainer}>
+          <Text style={styles.label}>Current Password</Text>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={[
+                styles.textInputStyle,
+                focusedInput === 'currentPassword' && { borderColor: '#b29705' },
+              ]}
+              placeholder="Enter Current Password"
+              placeholderTextColor="gray"
+              value={currentPassword}
+              secureTextEntry={!showPassword.currentPassword}
+              onFocus={() => setFocusedInput('currentPassword')}
+              onBlur={() => setFocusedInput(null)}
+              onChangeText={(text) => {
+                setCurrentPassword(text);
+              }}
+            />
+            <TouchableOpacity style={styles.eyeIcon} onPress={() => toggleShowPassword('currentPassword')}>
+              <Ionicons name={showPassword.currentPassword ? 'eye-off' : 'eye'} size={24} color="gray" />
+            </TouchableOpacity>
           </View>
-        ))}
+        </View>
+
+        {/* New Password Field */}
+        <View style={styles.passwordContainer}>
+          <Text style={styles.label}>New Password</Text>
+          {newPasswordError ? <Text style={styles.errorTextstyle}>{newPasswordError}</Text> : null}
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={[
+                styles.textInputStyle,
+                focusedInput === 'newPassword' && { borderColor: '#b29705' },
+                newPasswordError && { borderColor: 'red' },
+              ]}
+              placeholder="Enter New Password"
+              placeholderTextColor="gray"
+              value={newPassword}
+              secureTextEntry={!showPassword.newPassword}
+              onFocus={() => setFocusedInput('newPassword')}
+              onBlur={() => setFocusedInput(null)}
+              onChangeText={(text) => {
+                setNewPassword(text);
+              }}
+            />
+            <TouchableOpacity style={styles.eyeIcon} onPress={() => toggleShowPassword('newPassword')}>
+              <Ionicons name={showPassword.newPassword ? 'eye-off' : 'eye'} size={24} color="gray" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Confirm New Password Field */}
+        <View style={styles.passwordContainer}>
+          <Text style={styles.label}>Confirm New Password</Text>
+          {confirmNewPasswordError ? <Text style={styles.errorTextstyle}>{confirmNewPasswordError}</Text> : null}
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={[
+                styles.textInputStyle,
+                focusedInput === 'confirmPassword' && { borderColor: '#b29705' },
+                confirmNewPasswordError && { borderColor: 'red' },
+              ]}
+              placeholder="Confirm Password"
+              placeholderTextColor="gray"
+              value={confirmPassword}
+              secureTextEntry={!showPassword.confirmPassword}
+              onFocus={() => setFocusedInput('confirmPassword')}
+              onBlur={() => setFocusedInput(null)}
+              onChangeText={(text) => {
+                setConfirmPassword(text);
+              }}
+            />
+            <TouchableOpacity style={styles.eyeIcon} onPress={() => toggleShowPassword('confirmPassword')}>
+              <Ionicons name={showPassword.confirmPassword ? 'eye-off' : 'eye'} size={24} color="gray" />
+            </TouchableOpacity>
+          </View>
+        </View>
+     
+
       </View>
 
       <TouchableOpacity style={styles.myButton} onPress={handleSave}>
@@ -134,23 +179,24 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   heading: {
-    fontSize: 26,
+    fontSize: 30,
     color: '#b29705',
-    fontWeight: 'bold',
+    fontWeight: '400',
     marginBottom: 10,
   },
   NextButtonText: {
     color: '#fff',
     fontSize: 16,
+    fontWeight:'500'
   },
   myButton: {
     marginTop: 30,
     backgroundColor: '#b29705',
-    height: 40,
-    width: 150,
+    height: 50,
+    width: 320,
     alignItems: 'center',
     justifyContent: 'center',
-    borderRadius: 10,
+    borderRadius:50,
   },
   textInputContainer: {
     alignItems: 'center',
@@ -160,19 +206,28 @@ const styles = StyleSheet.create({
   passwordContainer: {
     marginBottom: 15,
   },
+  errorTextstyle: {
+    color: 'red',
+    fontSize: 13,
+    marginBottom: 5,
+    textAlign: 'left',
+    width: 250,
+    // marginLeft: -56,
+  },
   inputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  input: {
-    height: 40,
-    width: 260,
+  textInputStyle: {
+    height: 50,
+    width: 320,
     backgroundColor: 'transparent',
-    borderRadius: 8,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: 'white', // Default border color
     paddingRight: 10,
     paddingLeft: 10,
-    borderWidth: 2,
-    color: 'white',
+    color: 'white', // Text color when user is typing
   },
   eyeIcon: {
     position: 'absolute',

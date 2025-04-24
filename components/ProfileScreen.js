@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
-import { LinearGradient } from 'expo-linear-gradient';
 import { BACKEND_API_URL } from './configUrl';
 import { MaterialIcons } from '@expo/vector-icons';
 
@@ -57,6 +56,7 @@ const ProfileScreen = ( route ) => {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify({ password }), 
          });
   
@@ -73,14 +73,14 @@ const ProfileScreen = ( route ) => {
   };
 
   return (
-    // <LinearGradient
-    //       colors={['#000000', '#010b30', '#000000']} 
-    //       style={styles.backgroundGradient} // Apply gradient to full screen
-    //     >
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={styles.title}>Settings</Text>
+          {/* <Text style={styles.title}>Settings</Text> */}
         </View>
+        <Image
+        source={require('../assets/profile_icon.png')}
+        style={styles.Imagestyle}/>
+
         <View style={styles.myAccountView}>
         <Text style={styles.myAccount}>My Account</Text>
         </View>
@@ -186,8 +186,7 @@ const ProfileScreen = ( route ) => {
             </View>
           </View>
         </Modal>
-      </View>
-      //  </LinearGradient> 
+      </View> 
   );
   
 };
@@ -204,13 +203,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'black',
     padding: 20,
     alignItems: 'center',
-  },
-  backgroundGradient: {
-    flex: 1,
-    justifyContent: 'center',
-    alignSelf: 'center',
-    width: '100%',
-    height: '100%',
+    justifyContent:'center'
   },
   header: {
     marginLeft: -8,
@@ -225,6 +218,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#b29705',
     marginBottom: 20
+  },
+  Imagestyle: {
+    marginTop:-50,
+    marginBottom: 20,
+    height: 140,
+    width: 140,
   },
   myAccountView: {
     marginLeft: -20

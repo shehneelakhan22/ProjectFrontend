@@ -2,10 +2,9 @@ import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, StyleSheet, Dimensions } from 'react-native';
 import axios from 'axios';
 import { WebView } from 'react-native-webview';
+import { BACKEND_API_URL } from './configUrl';
+import { colors } from './constantcolors';
 
-// Screen dimensions
-const screenWidth = Dimensions.get('window').width;
-const screenHeight = Dimensions.get('window').height;
 
 const CandleStickChartComponent = ({ coin }) => {
   const [loading, setLoading] = useState(false);
@@ -16,7 +15,7 @@ const CandleStickChartComponent = ({ coin }) => {
 
     setLoading(true);
     try {
-      const url = `http://192.168.100.14:5000/api/candlestick?symbol=${symbol}&limit=100`;
+      const url = `${BACKEND_API_URL}/api/candlestick?symbol=${symbol}&limit=100`;
       console.log('API URL:', url);
 
       const response = await axios.get(url);
@@ -42,7 +41,7 @@ const CandleStickChartComponent = ({ coin }) => {
   // TradingView Embedded Widget URL (Lightweight)  (No ad)
   const tradingViewWidgetUrl = `https://s.tradingview.com/widgetembed/?symbol=BINANCE%3A${coin}USDT&interval=1&hidesidetoolbar=1&hideideas=1&theme=light&style=1&locale=en&toolbarbg=f1f3f6`;
 
-  //   // TradingView Widget URL (Containing Ad)
+  // TradingView Widget URL (Containing Ad)
   // const tradingViewWidgetUrl = `https://www.tradingview.com/chart/?symbol=BINANCE%3A${coin}USDT`;
 
   return (
@@ -65,12 +64,16 @@ const CandleStickChartComponent = ({ coin }) => {
   );
 };
 
+// Screen dimensions
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
+    backgroundColor: colors.secondary,
   },
   chartContainer: {
     width: screenWidth,

@@ -1,1 +1,3 @@
-export const BACKEND_API_URL = `http://192.168.10.6:5000`;
+// flask api url
+export const BACKEND_API_URL = `http://192.168.248.99:5000`;
+

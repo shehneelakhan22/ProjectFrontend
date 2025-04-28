@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { BACKEND_API_URL } from './configUrl';
+import { colors } from './constantcolors'
 
 const ChangePasswordScreen = ({ navigation }) => {
   const [currentPassword, setCurrentPassword] = useState('');
@@ -55,7 +57,7 @@ const ChangePasswordScreen = ({ navigation }) => {
             navigation.navigate('Profile');
           }, 1000);
         } else {
-          setError(result.error || 'Failed to change password');
+          setCurrentPasswordError(result.error);  //'Current password is incorrect.' in backend
         }
       } catch (error) {
         setError('Network error. Please try again.');
@@ -72,6 +74,9 @@ const ChangePasswordScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Profile')}>
+                    <Ionicons name="close" size={30} color={colors.secondary} /> 
+            </TouchableOpacity>
       {successMessage ? (
         <View style={styles.successBox}>
           <Text style={styles.successText}>{successMessage}</Text>
@@ -82,9 +87,10 @@ const ChangePasswordScreen = ({ navigation }) => {
       <View style={styles.textInputContainer}>
         {error ? <Text style={styles.errorText}>{error}</Text> : null}
 
-                {/* Current Password Field */}
-                <View style={styles.passwordContainer}>
+          {/* Current Password Field */}
+          <View style={styles.passwordContainer}>
           <Text style={styles.label}>Current Password</Text>
+          {currentPasswordError ? <Text style={styles.errorTextstyle}>{currentPasswordError}</Text> : null}
           <View style={styles.inputWrapper}>
             <TextInput
               style={[
@@ -177,6 +183,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'black',
     justifyContent: 'center',
+  },
+  backButton: {
+    position: 'absolute',
+    top: 34,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    backgroundColor: 'transparent',
   },
   heading: {
     fontSize: 30,

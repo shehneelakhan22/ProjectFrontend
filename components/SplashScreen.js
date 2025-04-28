@@ -1,28 +1,23 @@
 import React from 'react';
-import { StyleSheet, Image, View, Text } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
+import { StyleSheet, Image, View } from 'react-native';
+import { colors } from './constantcolors'
 
 
 const SplashScreen = () => {
   return (
-    // <LinearGradient
-    //   colors={['#000000', '#010b30', '#000000']} 
-    //   style={styles.backgroundGradient} // Apply gradient to full screen
-    // >
     <View style={styles.container}>
       <Image
         source={require('../assets/App_logo.png')}
         style={styles.logostyle}
       />
     </View>
-    //  </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
   },

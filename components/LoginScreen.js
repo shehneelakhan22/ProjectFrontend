@@ -1,7 +1,8 @@
-import axios from 'axios';
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, Dimensions, SafeAreaView } from 'react-native';
 import { BACKEND_API_URL } from './configUrl';
+import { colors } from './constantcolors'
+import { Ionicons } from '@expo/vector-icons';
 
 const LoginScreen = ({ navigation }) => {
   const [usernameEmailText, setUsernameEmailText] = useState('');
@@ -67,38 +68,36 @@ const LoginScreen = ({ navigation }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Start')}>
+        <Ionicons name="close" size={30} color={colors.accent} />
+        </TouchableOpacity>
               <View style={styles.welcomebackView}>
-              <Text style={styles.welcomeText}>Welcome</Text>
-              <Text style={styles.BackText}>Back!</Text>
+                  <Text style={styles.welcomeText}>Welcome Back!</Text>
               </View>
-              <View style={styles.subContainer}>
-                  {/* <Image
-                  source={require('../assets/App_logo.png')}
-                  style={styles.logostyle}
-                  /> */}
-      {error ? (
-          <Text style={styles.errorText}>{error}</Text>
-        ) : null}
-
-      <View style={styles.textInputContainer}>
-      {usernameEmailError ? (
-          <Text style={styles.errorText}>{usernameEmailError}</Text>
-        ) : null}
-        <TextInput
-        placeholder="Enter email or username"
-        value={usernameEmailText}
-        onChangeText={(text) => setUsernameEmailText(text)}
-        onFocus={() => setFocusedField('usernameEmail')}
-        onBlur={() => setFocusedField(null)}
-        style={[
-          styles.textInputStyle,
-          focusedField === 'usernameEmail' && { borderColor: '#b29705' },
-          usernameEmailError && { borderColor: 'red' },
-        ]}
-        placeholderTextColor="gray"
-        />
-      </View>
+      <View style={styles.subContainer}>
+        {error ? (
+          <Text style={styles.generalErrorText}>{error}</Text>
+          ) : null}
+          
+          <View style={styles.textInputContainer}>
+            {usernameEmailError ? (
+              <Text style={styles.errorText}>{usernameEmailError}</Text>
+              ) : null}
+              <TextInput
+               placeholder="Enter email or username"
+               value={usernameEmailText}
+               onChangeText={(text) => setUsernameEmailText(text)}
+               onFocus={() => setFocusedField('usernameEmail')}
+               onBlur={() => setFocusedField(null)}
+               style={[
+                styles.textInputStyle,
+                focusedField === 'usernameEmail' && { borderColor: colors.primary },
+                usernameEmailError && { borderColor: colors.error },
+              ]}
+              placeholderTextColor="gray"
+              />
+          </View>
 
       <View style={styles.textInputContainer}>
         {passwordError ? (
@@ -111,8 +110,8 @@ const LoginScreen = ({ navigation }) => {
         onBlur={() => setFocusedField(null)}
         style={[
           styles.textInputStyle,
-          focusedField === 'password' && { borderColor: '#b29705' },
-          passwordError && { borderColor: 'red' },
+          focusedField === 'password' && { borderColor: colors.primary },
+          passwordError && { borderColor: colors.error },
         ]}
         placeholderTextColor="gray"
         secureTextEntry
@@ -136,20 +135,22 @@ const LoginScreen = ({ navigation }) => {
 
       </View>
 
-    </View>
+    </SafeAreaView>
     );
 };
 
+
 const styles = StyleSheet.create({
   container: {
+    paddingTop:10,
     flex: 1,
-    backgroundColor:'#b29705',
+    backgroundColor:colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
   subContainer:{
     flex: 3,
-    backgroundColor:'black',
+    backgroundColor:colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     width:'100%',
@@ -164,23 +165,24 @@ const styles = StyleSheet.create({
     width: 250,
     borderRadius: 100,
   },
+  backButton: {
+    position: 'absolute',
+    top: 29,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    backgroundColor: 'transparent',
+  },  
   welcomebackView:{
-    marginLeft:-150,
     flex: 1,
     justifyContent: 'flex-end',
+    alignSelf:'center',
+    paddingBottom: 10
   },
   welcomeText:{
-    color:'black',
-    fontSize: 40,
-    fontWeight:'800',
-    fontStyle:'italic',
-    letterSpacing: 2.4,
-  },
-  BackText:{
-    marginTop: -8,
-    color:'black',
-    fontSize: 40,
-    fontWeight:'800',
+    color: colors.accent,
+    fontSize: 30,
+    fontWeight:'400',
     fontStyle:'italic',
     letterSpacing: 2.4,
   },
@@ -191,7 +193,7 @@ const styles = StyleSheet.create({
   },
   myButton: {
     top: 60,
-    backgroundColor:'#b29705',
+    backgroundColor:colors.primary,
     height: 50,
     width: 320,
     alignItems: 'center',
@@ -199,7 +201,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   signInButtonText: {
-    color: '#fff',
+    color: colors.secondary,
     fontSize: 16,
     fontWeight:'500'
   },
@@ -208,19 +210,26 @@ const styles = StyleSheet.create({
     marginTop:68,
   },
   askingStyling: {
-    color:'white',
+    color: colors.secondary,
     fontSize: 16, 
   },
   signUpText:{
-    color: '#b29705', 
+    color: colors.primary, 
     fontWeight: 'bold',
     marginBottom:-4.5,
     fontSize: 16, 
   },
   errorText: {
-    color: 'red',
-    fontSize: 14,
-    marginBottom: 3,
+    color: colors.error,
+    fontSize: 13,
+    marginBottom: 5,
+    alignSelf:'flex-start'
+  },
+  generalErrorText: {
+    color: colors.error,
+    fontSize: 13,
+    marginBottom: -5,
+    textAlign: 'center',
   },
   textInputStyle: {
     height: 50,
@@ -228,10 +237,10 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'white', // Default border color
+    borderColor: colors.secondary, // Default border color
     paddingRight: 10,
     paddingLeft: 10,
-    color: 'white', // Text color when user is typing
+    color: colors.secondary, // Text color when user is typing
   },
   
 });

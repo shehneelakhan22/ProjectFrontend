@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, Image } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, TextInput, Alert, Dimensions } from 'react-native';
 import { BACKEND_API_URL } from './configUrl';
+import { colors } from './constantcolors'
+import { Ionicons } from '@expo/vector-icons';
 
 const SignUpScreen = ({ navigation }) => {
   const [emailText, setEmailText] = useState('');
@@ -95,15 +97,15 @@ const SignUpScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Start')}>
+              <Ionicons name="close" size={30} color={colors.accent} /> 
+      </TouchableOpacity>
       <View style={styles.registerView}>
-        <Text style={styles.registerText}>Register!</Text>
+        <Text style={styles.registerText}>Create An Account!</Text>
       </View>
       <View style={styles.subContainer}>
-      {/* <Image
-      source={require('../assets/App_logo.png')}
-      style={styles.logostyle}/> */}
 
-      {error ? <Text style={styles.errorText}>{error}</Text> : null}
+      {error ? <Text style={styles.generalErrorText}>{error}</Text> : null}
 
       <View style={styles.textInputContainer}>
       {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
@@ -196,28 +198,39 @@ const SignUpScreen = ({ navigation }) => {
   );
 };
 
+const screenWidth = Dimensions.get('window').width;
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:'#b29705',
+    backgroundColor:colors.primary,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  backButton: {
+    position: 'absolute',
+    top: 29,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    backgroundColor: 'transparent',
+  },
   registerView:{
-    marginLeft:-150,
     flex: 1,
     justifyContent: 'flex-end',
+    alignSelf:'center',
+    marginBottom:10
   },
   registerText:{
-    color:'black',
-    fontSize: 40,
-    fontWeight:'800',
+    color: colors.accent,
+    fontSize: 30,
+    fontWeight:'400',
     fontStyle:'italic',
     letterSpacing: 2.4,
   },
   subContainer:{
     flex: 3,
-    backgroundColor:'black',
+    backgroundColor:colors.accent,
     alignItems: 'center',
     justifyContent: 'center',
     width:'100%',
@@ -226,13 +239,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 60,
     borderTopRightRadius: 60,
   },
-  logostyle: {
-    marginTop:-100,
-    marginBottom: -50,
-    height: 225,
-    width: 225,
-    borderRadius: 100,
-  },
   textInputContainer: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -240,7 +246,7 @@ const styles = StyleSheet.create({
   },
   myButton: {
     top: 45,
-    backgroundColor: '#b29705',
+    backgroundColor: colors.primary,
     height: 50,
     width: 320,
     alignItems: 'center',
@@ -248,7 +254,7 @@ const styles = StyleSheet.create({
     borderRadius: 50,
   },
   signUpButtonText: {
-    color: '#fff',
+    color: colors.secondary,
     fontSize: 16,
   },
   loginView:{
@@ -256,11 +262,11 @@ const styles = StyleSheet.create({
     marginTop:53,
   },
   askingStyling: {
-    color:'white',
+    color:colors.secondary,
     fontSize: 16, 
   },
   loginText:{
-    color: '#b29705', 
+    color: colors.primary, 
     fontWeight: 'bold',
     marginBottom:-4.5,
     fontSize: 16, 
@@ -271,18 +277,22 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
     borderRadius: 10,
     borderWidth: 1,
-    borderColor: 'white', // Default border color
+    borderColor: colors.secondary, // Default border color
     paddingRight: 10,
     paddingLeft: 10,
-    color: 'white', // Text color when user is typing
+    color: colors.secondary, // Text color when user is typing
   },
   errorText: {
-    color: 'red',
+    color: colors.error,
     fontSize: 13,
     marginBottom: 5,
-    textAlign: 'left',
-    width: 250,
-    marginLeft: -56,
+    alignSelf:'flex-start'
+  },
+  generalErrorText: {
+    color: colors.error,
+    fontSize: 13,
+    marginBottom: -5,
+    textAlign: 'center',
   },
 });
 

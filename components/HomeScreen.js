@@ -1,20 +1,21 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, FlatList, ActivityIndicator, Alert, Animated } from 'react-native';
+import { View, Text, TouchableOpacity, StyleSheet, Image, ScrollView, TextInput, FlatList, ActivityIndicator, Alert, Animated, SafeAreaView } from 'react-native';
 import RNPickerSelect from 'react-native-picker-select';
 import { RadioButton } from 'react-native-paper';
-import { LineChart } from 'react-native-chart-kit'; // Import the charting library
+import { LineChart } from 'react-native-chart-kit'; 
 import { Dimensions } from 'react-native';
-import axios from 'axios';
 import CandleStickChartComponent from './CandleStickChartComponent';
 import { BACKEND_API_URL } from './configUrl';
+import { colors } from './constantcolors'
+
 
 const HomeScreen = ({ navigation }) => {
-  const [selectedTab, setSelectedTab] = useState('CryptoSignals');
+  const [selectedTab, setSelectedTab] = useState('TradingBot');
   const [selectedValue, setSelectedValue] = useState(null);
   const [livePrice, setLivePrice] = useState(null);
   const [selectedIndicator, setSelectedIndicator] = useState(null);
   const [indicatorData, setIndicatorData] = useState({});
-  const [isCoinSelected, setIsCoinSelected] = useState(false); // Track if a coin is selected
+  const [isCoinSelected, setIsCoinSelected] = useState(false); 
   const [error, setError] = useState('');
   const [selectedTicker, setSelectedTicker] = useState(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState(null);
@@ -38,7 +39,7 @@ const HomeScreen = ({ navigation }) => {
   ////////////// "Crypto Signals" tab functions and states //////////////
 
 
-  // ---------------Start the bot---------------------
+  // ---------------Start the bot--------------------- //
   const startBot = async () => {
     if (selectedTimeframe && selectedTicker && investmentAmount) {
       console.log(`Bot started with timeframe: ${selectedTimeframe} minutes`);
@@ -299,6 +300,8 @@ const HomeScreen = ({ navigation }) => {
           setLivePrice(data.price); // Update livePrice state with fetched price
         } else {
           console.error(data.error);
+          console.log("Backend API URL:", Config.BACKEND_API_URL);
+
         }
       } catch (error) {
         console.error('Error fetching price:', error);
@@ -355,17 +358,19 @@ const HomeScreen = ({ navigation }) => {
     return () => clearInterval(indicatorInterval);
   }, [selectedIndicator, selectedValue]);
   
+
+  ///////////////////////////////////////////////////////////////////////////////
   ////////////////////////////----- Tabs Views ------////////////////////////////
+  ///////////////////////////////////////////////////////////////////////////////
 
   const renderContent = () => {
     switch (selectedTab) {
-      case 'CryptoSignals':
+      case 'TradingBot':
         return (
           <>
           {isBotRunning ? (
             botLoading ? (
               <View style={{ display:'flex', width:'100%', justifyContent: 'center', alignItems: 'center', marginTop:100 }}>
-              {/* <ActivityIndicator size="large" color="#00FFCC" /> */}
               <Animated.Image
               source={require('../assets/hello_Logo.png')}
               style={{
@@ -404,7 +409,7 @@ const HomeScreen = ({ navigation }) => {
         Investment: <Text style={styles.highlighted}>$ {investmentAmount}</Text>
       </Text>
       <Text style={styles.detailText}>
-        Current Balance: <Text style={[styles.highlighted, {color:'#00ff00'}]}>$ {balance}</Text>
+        Total Balance: <Text style={[styles.highlighted, {color:'#00ff00'}]}>$ {balance}</Text>
       </Text>
       <Text style={styles.detailText}>
         Timeframe: <Text style={styles.highlighted}>{
@@ -430,11 +435,10 @@ const HomeScreen = ({ navigation }) => {
                
     </View> 
     )
+      ) : (
 
-            ) : (
-
-              <ScrollView contentContainerStyle={styles.scrollViewContainer}>
-                 <Text style={styles.StartTradeText}>Start Crypto Bot</Text>
+              <View style={styles.tradingContainer}>
+                 <Text style={styles.StartTradeText}>Crypto Trading Bot</Text>
                  <View style={styles.CryptoInputContainer}>
                    <Text style={styles.labelStyling}>Select Cryptocurrency:</Text>
                     <View style={{alignItems:'center'}}>
@@ -466,7 +470,7 @@ const HomeScreen = ({ navigation }) => {
                         }}
                         value={selectedTimeframe}
                         >
-                          <View style={{flexDirection: 'row', justifyContent:'space-evenly', width:'100%'}}>
+                          <View style={{flexDirection: 'row', justifyContent:'space-between', width:'100%', paddingLeft:7, paddingRight:7}}>
 
                             <View style={styles.radioItemContainer}>
                               <RadioButton.Item
@@ -535,7 +539,7 @@ const HomeScreen = ({ navigation }) => {
                   </TouchableOpacity>
                 </View>
 
-              </ScrollView>
+              </View>
             
             )}
           </>
@@ -544,7 +548,8 @@ const HomeScreen = ({ navigation }) => {
         case 'PricePrediction':
           return (
             <View style={styles.predictionContainer}>
-              <Text style={styles.titleText}>Crypto Price Prediction</Text>
+              <Text style={styles.titleText}>Cryptocurrency Price Prediction</Text>
+              <Text style={{color:colors.secondary, textAlign:'center', marginBottom: 15}}>Select a coin to see its price forecast for the next 40 days.</Text>
               <View style={styles.dropDownForPricePrediction}>
                 <RNPickerSelect
                   onValueChange={(value) => {
@@ -557,14 +562,13 @@ const HomeScreen = ({ navigation }) => {
                     { label: 'BNB/USDT', value: 'binancecoin' },
                   ]}
                   style={{
-                      color: 'black',
+                      color: colors.accent,
                       paddingHorizontal: 10
                   }}
                   placeholder={{ label: 'Select a coin', value: null }}
                 />
               </View>
-
-              <Text style={styles.predictionCoin}>{selectedCoin}</Text>
+              {selectedCoin ? <Text style={styles.viewingCoin}>Viewing: <Text style={styles.predictionCoin}>{selectedCoin.toUpperCase()}</Text></Text> : null}
     
               {loading && <ActivityIndicator size="large" style={styles.loading} />}
     
@@ -585,25 +589,33 @@ const HomeScreen = ({ navigation }) => {
                       },
                     ],
                   }}
-                  width={Dimensions.get('window').width - 10} // Adjust width based on screen
-                  height={350} // Set the height of the chart
+                  width={Dimensions.get('window').width - 20} 
+                  height={Dimensions.get('window').width * 0.9} 
+                  yLabelsOffset={3}
                   chartConfig={{
-                    backgroundColor: '#FFFFFF', // White background for the chart
-                    backgroundGradientFrom: '#FFFFFF', // Keep background solid white
+                    backgroundColor: '#FFFFFF', 
+                    backgroundGradientFrom: '#FFFFFF', 
                     backgroundGradientTo: '#FFFFFF',
                     decimalPlaces: 2, // Show two decimal places
                     color: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Axis and grid line color (black)
-                    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Label color (black) for both x and y axes
-                    style: {
-                      borderRadius: 16,
-                    },
+                    labelColor: (opacity = 1) => `rgba(0, 0, 0, ${opacity})`, // Label color for both x and y axes [default]
                     propsForDots: {
                       r: '0', // This will remove dots from the chart
                     },
+                    propsForBackgroundLines: {
+                      stroke: '#e0e0e0', // light grey lines
+                      strokeDasharray: '', // solid lines
+                    },
                   }}
-                  style={{ marginVertical: 8 }}
+                  decorator={() => null}
+                  style={{
+                    marginVertical: 10,
+                    paddingBottom: 10
+                  }}
+                  contentInset={{ top: 100, bottom: 10 }}
+                  bezier
+                  verticalLabelRotation={90}
                   />
-
                 </View>
               ) : (
                 <FlatList
@@ -619,7 +631,9 @@ const HomeScreen = ({ navigation }) => {
 
   case 'LivePrices':
   return (
-    <>
+    <View style={{marginTop:10, alignItems:'center'}}>
+       <Text style={styles.titleText}>Cryptocurrency Insignt</Text>
+       <Text style={{color:colors.secondary, textAlign:'center', marginBottom: 10}}>Select a cryptocurrency to access real-time price and indicator data.</Text>
       <View style={styles.coinAndIndicatorsSelectionContainer}>
         <View style={styles.coinsDropDown}>
           <RNPickerSelect
@@ -704,30 +718,33 @@ const HomeScreen = ({ navigation }) => {
       <View style={styles.chartContainer}>
         {selectedValue && <CandleStickChartComponent coin={selectedValue} />}
       </View>
-    </>
+      </View>
+
   );
 }
 }
 
+///////////////////////////////////////////////////////////////////////////////
+//////////////////////////---- Tabs Calls ----/////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
 
   return (
 
-      <View style={styles.container}>
+      <SafeAreaView style={styles.container}>
         <View style={styles.header}>
-        <Image source={require('../assets/hello_Logo.png')} style={styles.LogoStyling} />
-          <Text style={styles.title}>rypto Analyzer</Text>
+        <Image source={require('../assets/HomeScreenTitle.png')} style={styles.LogoStyling} />
           <TouchableOpacity style={styles.userIcon} onPress={() => navigation.navigate('Profile')}>
-            <Image source={require('../assets/settings4.png')} style={styles.settingsIcon} />
+            <Image source={require('../assets/profile_click.png')} style={styles.settingsIcon} />
           </TouchableOpacity>
         </View>
 
         <View style={styles.tabContainer}>
 
         <View style={styles.tabsView}>
-          <TouchableOpacity style={styles.tab} onPress={() => setSelectedTab('CryptoSignals')}>
-          <View style={[styles.tabView, selectedTab === 'CryptoSignals' && styles.activeTab]}>
-            <Text style={[styles.tabText, selectedTab === 'CryptoSignals' && styles.selectedTabText]}>
-              Crypto Signals
+          <TouchableOpacity style={styles.tab} onPress={() => setSelectedTab('TradingBot')}>
+          <View style={[styles.tabView, selectedTab === 'TradingBot' && styles.activeTab]}>
+            <Text style={[styles.tabText, selectedTab === 'TradingBot' && styles.selectedTabText]}>
+              Trading Bot
             </Text>
             </View>
           </TouchableOpacity>
@@ -755,11 +772,10 @@ const HomeScreen = ({ navigation }) => {
 
         </View>
 
-        {/* <View style={styles.horizontalLine} /> */}
         <View style={styles.contentContainer}>
           {renderContent ? renderContent() : <Text>No Content Available</Text>}
         </View>
-      </View>
+      </SafeAreaView>
 
   );
 };  
@@ -772,41 +788,46 @@ const pickerSelectStyles = StyleSheet.create({
     borderWidth: 1,
     borderColor: 'gray',
     borderRadius: 4,
-    color: 'white',
+    color: colors.secondary,
     marginTop: 10,
   },
 });
+
+const screenWidth = Dimensions.get('window').width;
+const screenHeight = Dimensions.get('window').height;
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor:'black',
+    paddingTop:24,
+    backgroundColor: colors.accent,
   },
   radioItemContainer: {
     flexDirection: 'column',
     alignItems: 'center',
   },
   radioLabel: {
-    color: 'white',
+    color: colors.secondary,
     fontSize: 16,
     marginTop:-11,
     textAlign: 'center',
+    fontWeight:'300'
   },
-  radioItem: {
-    flexDirection: 'row-reverse',
-  },
-  scrollViewContainer : {
-    flex: 1,
+  tradingContainer : {
     padding: 20,
+    width:screenWidth * 0.9
   },
   StartTradeText:{
-    color:'#b29705',
+    color:colors.primary,
     fontSize: 30,
-    fontWeight:'bold',
     marginTop:-25,
     marginBottom:20,
-    textAlign:'center'
+    textAlign:'center',
+    color:colors.primary,
+    fontWeight:'400',
+    marginBottom: 10,
+    marginTop: -40
   },
   buttonView:{
     marginTop: 20,
@@ -815,7 +836,7 @@ const styles = StyleSheet.create({
   },
   startButton: {
     marginTop: 20,
-    backgroundColor: '#b29705',
+    backgroundColor: colors.primary,
     borderRadius: 50,
     height: 45,
     width: 200,
@@ -823,12 +844,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   startButtonText: {
-    color: '#fff',
+    color: colors.secondary,
     fontSize: 20,
     fontWeight: 'bold',
   },
   CryptoInputContainer:{
-    height:100
+    height:100,
   },
   TimeframeInputContainer:{
     height:128,
@@ -838,33 +859,21 @@ const styles = StyleSheet.create({
     height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 40,
   },
   header: {
-    marginLeft: -8,
-    marginTop: -10,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 20,
-  },
-  title: {
-    color: '#b29705',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 20,
-    marginLeft: -135
+    marginTop: 22,
   },
   settingsIcon: {
-    marginTop: 20,
-    borderRadius: 50,
     width: 35,
     height: 35,
   },
   LogoStyling: {
-    marginTop: 20,
-    borderRadius: 50,
-    width: 50,
+    alignSelf:'center',
+    width: 190,
     height: 50,
   },
   tabContainer: {
@@ -876,7 +885,7 @@ const styles = StyleSheet.create({
     marginLeft: -12,
     marginRight: -12,
     alignItems:'center',
-    backgroundColor:'white',
+    backgroundColor:colors.secondary,
     borderRadius:10
   },
   tabsView:{
@@ -896,14 +905,14 @@ const styles = StyleSheet.create({
     textAlign:'center',
   },
   tabText: {
-    color: 'black',
+    color: colors.accent,
     fontSize: 12,
     textAlign:'center'
 
   },
   selectedTabText: {
     fontWeight: 'bold',
-    color: 'white',
+    color: colors.secondary,
     width:'100%',
     borderRadius:10,
   },
@@ -915,21 +924,22 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   activeTab: {
-    backgroundColor: '#b29705',
+    backgroundColor: colors.primary,
     borderRadius:10,
     justifyContent: 'center',
     alignItems: 'center',
   },
   labelStyling:{
-    color:'white',
+    color:colors.secondary,
+    marginTop: 10,
     marginBottom: 10,
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 18,
+    fontWeight: '300',
   },
   coinsDropDownInCryptoSignals:{
     height: 34,
     width: 200,
-    backgroundColor: 'white',
+    backgroundColor: colors.secondary,
     alignContent: 'center',
     justifyContent: 'center',
     borderRadius: 10,
@@ -945,7 +955,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   DollarSign:{
-    color: 'white', 
+    color: colors.secondary, 
     fontWeight: 'bold', 
     fontSize: 20, 
     paddingLeft:33,
@@ -959,13 +969,6 @@ const styles = StyleSheet.create({
     marginLeft:0,
     fontSize:16
   },
-  horizontalLine: {
-    borderBottomColor: 'gray',
-    borderBottomWidth: 1,
-    marginLeft: -20,
-    marginRight: -20,
-    marginTop: -9,
-  },
   contentContainer: {
     padding: 20,
     alignItems: 'center',
@@ -977,7 +980,6 @@ const styles = StyleSheet.create({
   pricesTextContainer: {
     marginTop: -4,
     marginBottom: 20,
-    // width: '120%',
     height: 57,
     borderRadius: 10,
   },
@@ -1008,14 +1010,14 @@ const styles = StyleSheet.create({
   coinsDropDown: {
     height: 40,
     width: 180,
-    backgroundColor: 'white',
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     borderRadius: 10,
   },
   indicatorsDropDown: {
     height: 40,
     width: 180,
-    backgroundColor: 'white',
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     borderRadius: 10,
   },
@@ -1025,14 +1027,11 @@ const styles = StyleSheet.create({
     justifyContent:'space-between',
   },
   chartContainer: {
-    marginTop: 10,
-    height: 420,
-    // height:280,
-    width: '121%',
+    height: screenHeight * 0.65,
   },
   bbandText: {
     fontSize: 14,
-    color: 'white'
+    color: colors.secondary
   },
   bbandValue: {
     color: '#00FF00',
@@ -1040,7 +1039,7 @@ const styles = StyleSheet.create({
   },
   rsiText: {
     fontSize: 14,
-    color:'white'
+    color: colors.secondary
   },
   rsiValue: {
     fontSize: 17,
@@ -1049,12 +1048,12 @@ const styles = StyleSheet.create({
   },
   selectedTimeTextStyle:{
     fontSize:18,
-    color:'white',
+    color: colors.secondary,
     fontWeight:'500'
   },
   selectedTimeStyle:{
      fontSize:18,
-     color:'green',
+     color:colors.success,
      fontWeight:'bold'
   },
   countdownStyle: {
@@ -1094,7 +1093,7 @@ const styles = StyleSheet.create({
     marginTop: -10,
     marginVertical: 20,
     padding: 10,
-    backgroundColor: '#ffffff',
+    backgroundColor: colors.secondary,
     borderRadius: 10,
   },
   alertMessage:{
@@ -1102,21 +1101,20 @@ const styles = StyleSheet.create({
     fontWeight:'bold',
     color:'#2e2d2b'
   }, 
-
   predictionContainer: {
+    width:screenWidth * 0.9,
     padding: 20,
     alignItems:'center',
-    // backgroundColor:'pink',
   },
   titleText: {
-    color:'#b29705',
-    fontWeight:'bold',
-    fontSize: 20,
-    marginBottom: 15,
-    marginTop: -20
+    color:colors.primary,
+    fontWeight:'400',
+    fontSize: 22,
+    marginBottom: 10,
+    marginTop: -40,
   },
   error: {
-    color: 'red',
+    color: colors.error,
     marginTop: 10,
   },
   loading: {
@@ -1124,20 +1122,25 @@ const styles = StyleSheet.create({
   },
   prediction: {
     marginTop: 5,
-    color:'green'
+    color:colors.success
   },
   dropDownForPricePrediction: {
     height: 40,
     width: 180,
-    backgroundColor: 'white',
+    backgroundColor: colors.secondary,
     justifyContent: 'center',
     borderRadius: 10,
   },
-  predictionCoin: {
-    color:'#b29705',
-    fontSize:18,
+  viewingCoin:{
+    color: colors.secondary,
+    fontSize:16,
     marginTop:10,
-    fontWeight:'bold'
+    fontWeight:'400'
+  },
+  predictionCoin: {
+    color: colors.primary,
+    fontSize:16,
+    fontWeight:'600'
   },
   runningBotContainer: {
     flex:1,
@@ -1157,13 +1160,13 @@ const styles = StyleSheet.create({
   stopButton: {
     width:150,
     alignItems:'center',
-    backgroundColor: 'red',
+    backgroundColor: colors.error,
     paddingVertical: 8,
     paddingHorizontal: 25,
     borderRadius: 20,
   },
   stopButtonText: {
-    color: 'white',
+    color: colors.secondary,
     fontWeight: 'bold',
     fontSize: 18,
   },
@@ -1180,12 +1183,12 @@ const styles = StyleSheet.create({
     alignItems:'center'
   },
   timestampText: {
-    color: 'white',
+    color: colors.secondary,
     fontSize: 14,
     marginVertical: 10,
   },
   detailText: {
-    color: 'white',
+    color: colors.secondary,
     fontSize: 15,
     marginVertical: 2,
   },
@@ -1202,29 +1205,27 @@ const styles = StyleSheet.create({
     paddingBottom:5,
   },
   IndividualCard: {
-    // backgroundColor: '#171716',
-    backgroundColor:'black',
+    backgroundColor:colors.accent,
     borderRadius:10,
     padding:10,
     marginVertical:'5',
   },
   SummaryText:{
-    color:'white',
+    color:colors.secondary,
     fontWeight:'bold',
     fontSize:16
   },
   infoText:{
     marginTop:2,
-    color:'white',
+    color:colors.secondary,
     fontSize:14
   },
   conStatus: {
     color: '#ffd700',
-    // fontWeight: 'bold',
     marginBottom: 5,
   },
   coinText: {
-    color: 'white',
+    color: colors.secondary,
     fontSize: 16,
   },
   cardTimestamp: {
@@ -1245,16 +1246,16 @@ const styles = StyleSheet.create({
   },
   buy: {
     borderLeftWidth: 5,
-    borderLeftColor: 'green',
+    borderLeftColor: colors.success,
   },
   sell: {
     borderLeftWidth: 5,
-    borderLeftColor: 'red',
+    borderLeftColor: colors.error,
   },
   type: {
     fontWeight: 'bold',
     fontSize: 16,
-    color:'#b29705'
+    color:colors.primary
   },
 });
 

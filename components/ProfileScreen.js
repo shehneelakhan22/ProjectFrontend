@@ -3,9 +3,10 @@ import { StyleSheet, Text, TouchableOpacity, View, Modal, TextInput, Image } fro
 import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 import { BACKEND_API_URL } from './configUrl';
-import { MaterialIcons } from '@expo/vector-icons';
+import { colors } from './constantcolors'
+import { MaterialIcons, Ionicons } from '@expo/vector-icons';
 
-const ProfileScreen = ( route ) => {
+const ProfileScreen = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const navigation = useNavigation();
@@ -74,8 +75,10 @@ const ProfileScreen = ( route ) => {
 
   return (
       <View style={styles.container}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.navigate('Home')}>
+              <Ionicons name="close" size={30} color={colors.secondary} /> 
+      </TouchableOpacity>
         <View style={styles.header}>
-          {/* <Text style={styles.title}>Settings</Text> */}
         </View>
         <Image
         source={require('../assets/profile_icon.png')}
@@ -194,16 +197,18 @@ const ProfileScreen = ( route ) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: 'black',
-    padding: 20,
-    alignItems: 'center',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: 'black',
+    backgroundColor: colors.accent,
     padding: 20,
     alignItems: 'center',
     justifyContent:'center'
+  },
+  backButton: {
+    position: 'absolute',
+    top: 34,
+    left: 20,
+    zIndex: 10,
+    padding: 8,
+    backgroundColor: 'transparent',
   },
   header: {
     marginLeft: -8,
@@ -216,7 +221,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 36,
     fontWeight: 'bold',
-    color: '#b29705',
+    color: colors.primary,
     marginBottom: 20
   },
   Imagestyle: {
@@ -233,7 +238,7 @@ const styles = StyleSheet.create({
     marginLeft: -162,
     fontSize: 23,
     fontWeight: 'bold',
-    color: '#b29705'
+    color: colors.primary
   },
   profileContainer: {
     backgroundColor:'white',
@@ -250,11 +255,10 @@ const styles = StyleSheet.create({
     borderColor: 'transparent',
     borderRadius: 10,
   },
-  // Apply gradient to full screen
   InfoHeading: {
     fontSize: 17,
     fontWeight: '500',
-    color:'black'
+    color:colors.accent
   },
   textInputContainer: {
     marginBottom:30,
@@ -289,7 +293,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
   },
   changePassword: {
-    color: 'black',
+    color: colors.accent,
     fontWeight: 'bold',
     fontSize: 17,
   },
@@ -309,20 +313,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   deleteButton: {
-    color: 'white',
+    color: colors.secondary,
     fontWeight:'600'
   },
   logOutButtonView: {
     marginTop: 10,
     borderRadius: 10,
-    backgroundColor: '#b29705',
+    backgroundColor: colors.primary,
     height: 40,
     width: 130,
     alignItems: 'center',
     justifyContent: 'center',
   },
   logOutButton: {
-    color: 'white',
+    color: colors.secondary,
     fontWeight:'600'
   },
   modalOverlay: {
@@ -333,7 +337,7 @@ const styles = StyleSheet.create({
   },
   modalContainer: {
     width: 300,
-    backgroundColor: 'white',
+    backgroundColor: colors.secondary,
     borderRadius: 5,
     padding: 20,
     alignItems: 'center',
@@ -360,8 +364,7 @@ const styles = StyleSheet.create({
     borderRadius:10
   },
   logoutButton: {
-    // backgroundColor: '#EC3232',
-    backgroundColor:'#b29705',
+    backgroundColor:colors.primary,
     borderRadius:10
   },
   deleteButtonFinal:{
@@ -369,7 +372,7 @@ const styles = StyleSheet.create({
      borderRadius:10
   },
   modalButtonText: {
-    color: 'white',
+    color: colors.secondary,
     fontWeight: 'bold',
   },
 });
